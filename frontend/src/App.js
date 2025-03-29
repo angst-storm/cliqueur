@@ -1,64 +1,62 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import './App.css';
+import { WSClient } from './services/websocket/WSClient';
+import PresentationView from './components/presentation/PresentationView';
+import { AudioRecorder } from './hooks/AudioRecorder';
 
 function App() {
-    const [currentSlide, setCurrentSlide] = useState(0);
     const [slides, setSlides] = useState([]);
+    const [isConnected, setIsConnected] = useState(false);
+    const wsClient = useRef(null);
 
-    const showSlide = useCallback((index) => {
-        if (index >= slides.length) {
-            setCurrentSlide(0);
-        } else if (index < 0) {
-            setCurrentSlide(slides.length - 1);
-        } else {
-            setCurrentSlide(index);
+    const sendAudioChunk = useCallback((data) => {
+        if (wsClient.current?.isConnected) {
+            wsClient.current.send(data);
         }
-    }, [slides.length]);
+    }, []);
 
-    const nextSlide = useCallback(() => {
-        showSlide(currentSlide + 1);
-    }, [currentSlide, showSlide]);
-
-    const prevSlide = useCallback(() => {
-        showSlide(currentSlide - 1);
-    }, [currentSlide, showSlide]);
+    const { isRecording, toggleRecording, stopRecording } = AudioRecorder(sendAudioChunk);
 
     useEffect(() => {
-        const handleKeyDown = (event) => {
-            if (event.key === 'ArrowLeft') {
-                prevSlide();
-            } else if (event.key === 'ArrowRight') {
-                nextSlide();
-            }
-        };
+        wsClient.current = new WSClient('ws://localhost:8000/ws');
+        wsClient.current.connect()
+            .then(() => setIsConnected(true))
+            .catch(console.error);
 
-        document.addEventListener('keydown', handleKeyDown);
         return () => {
-            document.removeEventListener('keydown', handleKeyDown);
+            wsClient.current?.close();
+            stopRecording();
         };
-    }, [prevSlide, nextSlide]);
+    }, [stopRecording]);
 
     useEffect(() => {
-        fetch('/Sample.html')
+        fetch('/Sample.html') // загрузка слайдов
             .then(response => response.text())
-            .then(data => {
+            .then(html => {
                 const parser = new DOMParser();
-                const doc = parser.parseFromString(data, 'text/html');
-                const slideElements = Array.from(doc.querySelectorAll('.slide'));
-                setSlides(slideElements);
+                const doc = parser.parseFromString(html, 'text/html');
+                setSlides(Array.from(doc.querySelectorAll('.slide')));
             })
-            .catch(error => console.error('Ошибка загрузки слайдов:', error));
+            .catch(console.error);
     }, []);
 
     return (
-        <div className="slideshow-container">
-            <div className="slides" style={{ transform: `translateX(-${currentSlide * 100}%)` }}>
-                {slides.map((slide, index) => (
-                    <div key={index} className="slide" dangerouslySetInnerHTML={{ __html: slide.innerHTML }} />
-                ))}
+        <div>
+            <div className="status-bar">
+                <div className={`connection-status ${isConnected ? 'connected' : 'disconnected'}`}>
+                    {isConnected ? 'Online' : 'Offline'}
+                </div>
+
+                <button
+                    onClick={toggleRecording}
+                    className={`record-button ${isRecording ? 'active' : ''}`}
+                    disabled={!isConnected}
+                >
+                    {isRecording ? '⏹ Stop' : '⏺ Record'}
+                </button>
             </div>
-            <button className="prev" onClick={prevSlide}>&#10094;</button>
-            <button className="next" onClick={nextSlide}>&#10095;</button>
+
+            {slides.length > 0 && <PresentationView slides={slides} />}
         </div>
     );
 }
