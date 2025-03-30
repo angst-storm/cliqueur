@@ -3,6 +3,7 @@ export class WSClient {
         this.url = url;
         this.socket = null;
         this.isConnected = false;
+        this.pendingMessages = [];
     }
 
     connect() {
@@ -11,6 +12,8 @@ export class WSClient {
 
             this.socket.onopen = () => {
                 this.isConnected = true;
+                this.pendingMessages.forEach(msg => this.send(msg.data));
+                this.pendingMessages = [];
                 resolve();
             };
 
@@ -27,15 +30,16 @@ export class WSClient {
 
     send(data) {
         if (this.isConnected && this.socket.readyState === WebSocket.OPEN) {
-            if (data instanceof Blob) {
-                this.socket.send(data);
-            } else {
-                this.socket.send(JSON.stringify(data));
-            }
+            this.socket.send(data);
+        } else {
+            this.pendingMessages.push({ data });
         }
     }
 
     close() {
-        this.socket?.close();
+        if (this.socket) {
+            this.socket.close();
+            this.isConnected = false;
+        }
     }
 }
