@@ -45,6 +45,6 @@ export const useWSClient = () => {
         disconnect,
         isConnected: (endpoint) => !!connections[endpoint],
         isConnecting,
-        getClient: (endpoint) => clients[endpoint]
+        getClient: (endpoint) => clients.current[endpoint]
     };
 };
