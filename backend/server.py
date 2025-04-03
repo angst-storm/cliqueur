@@ -16,7 +16,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
 @app.get("/")
 async def get():
     return audio_processing.front_page()  # Use the built-in web interface
@@ -35,6 +34,7 @@ async def websocket_endpoint(websocket: WebSocket):
 @app.websocket("/ws/slides")
 async def websocket_endpoint(websocket: WebSocket):
     await create_task(presentation_handler.send_slide_number(websocket))
+
 
 if __name__ == "__main__":
     uvicorn.run("server:app", port=8000, log_level="info")
