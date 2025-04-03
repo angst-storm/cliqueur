@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import './PresentationView.css';
+import { useSlideWebSocket } from '../../hooks/useSlideWebSocket';
 
 const PresentationView = ({ slides }) => {
     const [currentSlide, setCurrentSlide] = useState(0);
 
     const showSlide = useCallback((index) => {
+        console.log('Переключаем на индекс:', index);
         if (index >= slides.length) {
             setCurrentSlide(0);
         } else if (index < 0) {
@@ -36,6 +38,8 @@ const PresentationView = ({ slides }) => {
             document.removeEventListener('keydown', handleKeyDown);
         };
     }, [prevSlide, nextSlide]);
+
+    useSlideWebSocket(showSlide);
 
     return (
         <div className="slideshow-container">

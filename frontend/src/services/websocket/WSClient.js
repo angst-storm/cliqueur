@@ -4,6 +4,7 @@ export class WSClient {
         this.socket = null;
         this.isConnected = false;
         this.pendingMessages = [];
+        this.messageListeners = [];
     }
 
     connect() {
@@ -15,6 +16,10 @@ export class WSClient {
                 this.pendingMessages.forEach(msg => this.send(msg.data));
                 this.pendingMessages = [];
                 resolve();
+            };
+
+            this.socket.onmessage = (event) => {
+                this.messageListeners.forEach(callback => callback(event.data));
             };
 
             this.socket.onerror = (error) => {
@@ -34,6 +39,10 @@ export class WSClient {
         } else {
             this.pendingMessages.push({ data });
         }
+    }
+
+    onMessage(callback) {
+        this.messageListeners.push(callback);
     }
 
     close() {
