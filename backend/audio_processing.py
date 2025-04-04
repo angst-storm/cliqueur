@@ -1,4 +1,5 @@
 import asyncio
+import os
 
 from gigachat_handler import GigachatSender
 from presentation_handler import extract_text
@@ -7,8 +8,9 @@ from fastapi.responses import HTMLResponse
 from whisperlivekit import WhisperLiveKit
 from whisperlivekit.audio_processor import AudioProcessor
 
-turbo = "large-v3-turbo"
-kit = WhisperLiveKit(model=turbo, language='ru', model_cache_dir='models')
+WHISPER_SIZE = os.getenv("WHISPER_SIZE", "large-v3-turbo")
+
+kit = WhisperLiveKit(model=WHISPER_SIZE, language="ru", model_cache_dir="models")
 
 
 def front_page():
@@ -19,7 +21,7 @@ async def handle_websocket_results(websocket, results_generator):
     giga_sender = GigachatSender(extract_text())
     giga_sender.start_text_processing()
     async for response in results_generator:
-        text = response['buffer_transcription']
+        text = response["buffer_transcription"]
         await giga_sender.add_text(text)
 
 

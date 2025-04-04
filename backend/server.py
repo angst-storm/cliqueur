@@ -1,7 +1,11 @@
 import uvicorn
+
 from fastapi import FastAPI, WebSocket
 from starlette.middleware.cors import CORSMiddleware
 from asyncio import create_task
+from dotenv import load_dotenv
+
+load_dotenv()
 
 import audio_processing
 import presentation_handler
@@ -15,6 +19,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 @app.get("/")
 async def get():
