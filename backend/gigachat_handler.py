@@ -1,19 +1,22 @@
 import asyncio
 import presentation_handler
+import os
 
 from langchain_gigachat.chat_models import GigaChat
 from ast import literal_eval
 
-prompt = ("Дан текст слайдов и фрагмент речи спикера. Определи, к какому слайду относится речь, и верни 3 наиболее "
-          "вероятных варианта с их вероятностями строго в формате: {{номер_слайда1: вероятность1, номер_слайда2: "
-          "вероятность2, номер_слайда3: вероятность3}}. Текст слайдов: {slides_text}. Речь спикера: {user_text}.")
+GIGACHAT_API_KEY = os.getenv("GIGACHAT_API_KEY")
 
-api_key = open('api_key.txt').readline()  # я не собираюсь пушить свой ключ
+prompt = (
+    "Дан текст слайдов и фрагмент речи спикера. Определи, к какому слайду относится речь, и верни 3 наиболее "
+    "вероятных варианта с их вероятностями строго в формате: {{номер_слайда1: вероятность1, номер_слайда2: "
+    "вероятность2, номер_слайда3: вероятность3}}. Текст слайдов: {slides_text}. Речь спикера: {user_text}."
+)
 
 
 class GigachatSender:
     giga_instance = GigaChat(
-        credentials=api_key,
+        credentials=GIGACHAT_API_KEY,
         verify_ssl_certs=False,
     )
 
@@ -34,7 +37,7 @@ class GigachatSender:
         print("Gigachat text processing started")
         while True:
             user_text = await self.text_queue.get()
-            if user_text == '':
+            if user_text == "":
                 print("Gigachat: ignoring empty transcription")
                 continue
             print(f"'{user_text}' is processing")
