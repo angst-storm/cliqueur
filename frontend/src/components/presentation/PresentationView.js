@@ -1,12 +1,17 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import './PresentationView.css';
 import { useSlideWebSocket } from '../../hooks/useSlideWebSocket';
+import SlideControlWrapper from './SlideControlWrapper';
+import { useAudioRecorder } from '../../hooks/useAudioRecorder';
+import { useWSClient } from '../../hooks/useWSClient';
 
 const PresentationView = ({ slides }) => {
     const [currentSlide, setCurrentSlide] = useState(0);
+    const { isRecording, startRecording, stopRecording } = useAudioRecorder();
+    const { connect, disconnect } = useWSClient();
+    const wsClient = useRef(null);
 
     const showSlide = useCallback((index) => {
-        console.log('Переключаем на индекс:', index);
         if (index >= slides.length) {
             setCurrentSlide(0);
         } else if (index < 0) {
@@ -24,13 +29,32 @@ const PresentationView = ({ slides }) => {
         showSlide(currentSlide - 1);
     }, [currentSlide, showSlide]);
 
+    const handleRecordToggle = useCallback(async () => {
+        if (!isRecording) {
+            try {
+                wsClient.current = await connect('asr');
+                await startRecording((data) => {
+                    if (wsClient.current?.isConnected) {
+                        wsClient.current.send(data);
+                    }
+                });
+            } catch (error) {
+                console.error('Ошибка запуска записи:', error);
+                stopRecording();
+                disconnect('asr');
+            }
+        } else {
+            stopRecording();
+            disconnect('asr');
+            wsClient.current?.close();
+            wsClient.current = null;
+        }
+    }, [isRecording, startRecording, stopRecording, connect, disconnect]);
+
     useEffect(() => {
         const handleKeyDown = (event) => {
-            if (event.key === 'ArrowLeft') {
-                prevSlide();
-            } else if (event.key === 'ArrowRight') {
-                nextSlide();
-            }
+            if (event.key === 'ArrowLeft') prevSlide();
+            else if (event.key === 'ArrowRight') nextSlide();
         };
 
         document.addEventListener('keydown', handleKeyDown);
@@ -48,8 +72,14 @@ const PresentationView = ({ slides }) => {
                     <div key={index} className="slide" dangerouslySetInnerHTML={{ __html: slide.innerHTML }} />
                 ))}
             </div>
-            <button className="prev" onClick={prevSlide}>&#10094;</button>
-            <button className="next" onClick={nextSlide}>&#10095;</button>
+            <SlideControlWrapper
+                onPrev={prevSlide}
+                onNext={nextSlide}
+                isRecording={isRecording}
+                onToggleRecording={handleRecordToggle}
+                currentSlide={currentSlide}
+                totalSlides={slides.length}
+            />
         </div>
     );
 };
