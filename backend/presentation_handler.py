@@ -35,6 +35,8 @@ class PresentationConverter:
             html_content = re.sub(r'<tspan[^>]*>Evaluation only\.</tspan>', '', html_content)
             html_content = re.sub(r'<tspan[^>]*>Created with Aspose\.Slides[^<]*</tspan>', '', html_content)
             html_content = re.sub(r'<tspan[^>]*>Copyright \d{4}-\d{4}Aspose Pty Ltd\.</tspan>', '', html_content)
+            html_content = re.sub(r'<div\s+class="slideTitle">.*?</div>', '', html_content)
+
         finally:
             os.unlink(temp_pptx_path)
             if os.path.exists(output_path):
