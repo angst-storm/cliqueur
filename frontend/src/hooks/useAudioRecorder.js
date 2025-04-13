@@ -4,6 +4,8 @@ export const useAudioRecorder = () => {
     const mediaRecorder = useRef(null);
     const streamRef = useRef(null);
     const [isRecording, setIsRecording] = useState(false);
+    const CHUNK_COUNT = 5000;
+
 
     const initAudio = useCallback(async () => {
         try {
@@ -35,7 +37,7 @@ export const useAudioRecorder = () => {
                 }
             };
 
-            mediaRecorder.current.start(2000);
+            mediaRecorder.current.start(CHUNK_COUNT);
             setIsRecording(true);
             console.log('[Audio] Запись начата');
         } catch (error) {

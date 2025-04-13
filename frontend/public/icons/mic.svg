@@ -1,0 +1,12 @@
+<svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M59 30C59 46.0163 46.0163 59 30 59C13.9837 59 1 46.0163 1 30C1 13.9837 13.9837 1 30 1C46.0163 1 59 13.9837 59 30Z" stroke="#B20000" stroke-opacity="0.5" stroke-width="2"/>
+<path d="M30.5 41V52H24H37" stroke="#B20000" stroke-opacity="0.5" stroke-width="2"/>
+<mask id="mask0_170_2" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="16" y="13" width="29" height="28">
+<path d="M44 27C44 34.1469 37.9892 40 30.5 40C23.0108 40 17 34.1469 17 27C17 19.8531 23.0108 14 30.5 14C37.9892 14 44 19.8531 44 27Z" stroke="#B20000" stroke-opacity="0.5" stroke-width="2"/>
+</mask>
+<g mask="url(#mask0_170_2)">
+<rect x="16" y="26" width="29" height="15" fill="#B20000"/>
+</g>
+<path d="M37 17.5V28.5C37 32.0898 34.0899 35 30.5 35C26.9101 35 24 32.0899 24 28.5V17.5C24 13.9101 26.9101 11 30.5 11C34.0899 11 37 13.9101 37 17.5Z" stroke="#B20000" stroke-opacity="0.5" stroke-width="2"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M50.7072 10.7072L10.7072 50.7072L9.29297 49.293L49.293 9.29297L50.7072 10.7072Z" fill="#B20000" fill-opacity="0.5"/>
+</svg>

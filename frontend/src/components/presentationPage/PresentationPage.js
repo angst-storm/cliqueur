@@ -19,7 +19,6 @@ const PresentationPage = () => {
 
     return (
         <div>
-            <RecordingStatusBar />
             {slides.length > 0 && <PresentationView slides={slides} />}
         </div>
     );
