@@ -1,7 +1,9 @@
-import React, {useState, useCallback, useEffect, useRef} from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { useWSClient } from '../../hooks/useWSClient';
 import './PageStart.css';
 import { useNavigate } from 'react-router-dom';
+import CopyLink from "./CopyLink";
+import { ClipLoader } from 'react-spinners';
 
 const PageStart = () => {
     const [isLoading, setIsLoading] = useState(false);
@@ -9,6 +11,9 @@ const PageStart = () => {
     const navigate = useNavigate();
     const { connect, disconnect, isConnected, isConnecting, getClient } = useWSClient();
     const clientRef = useRef(null);
+    const [uploadedFileName, setUploadedFileName] = useState('');
+    const [html, setHtml] = useState(null);
+    const [presentationLink, setPresentationLink] = useState('');
 
     useEffect(() => {
         const initConnection = async () => {
@@ -31,13 +36,15 @@ const PageStart = () => {
         };
     }, [connect, disconnect]);
 
-
     const handleFileUpload = useCallback(async (event) => {
         const file = event.target.files[0];
         if (!file || !clientRef.current) return;
 
         setIsLoading(true);
         setError('');
+        setUploadedFileName(file.name);
+        setHtml(null);
+        setPresentationLink('');
 
         try {
             const fileBuffer = await new Promise((resolve, reject) => {
@@ -49,42 +56,94 @@ const PageStart = () => {
 
             await clientRef.current.send(fileBuffer);
 
-            const html = await new Promise((resolve) => {
-                clientRef.current.socket.addEventListener('message', (event) => {
-                    resolve(event.data);
-                }, { once: true });
-            });
+            let receivedHtml = null;
+            let receivedLink = null;
 
-            navigate('/presentation', { state: { html } });
+            const onMessage = (event) => {
+                const data = event.data;
+
+                if (data.startsWith('http')) {
+                    receivedLink = data;
+                    setPresentationLink(data);
+                } else {
+                    receivedHtml = data;
+                    setHtml(data);
+                }
+
+                if (receivedHtml && receivedLink) {
+                    clientRef.current.socket.removeEventListener('message', onMessage);
+                }
+            };
+
+            clientRef.current.socket.addEventListener('message', onMessage);
         } catch (err) {
             setError(err.message || 'Ошибка загрузки');
         } finally {
             setIsLoading(false);
         }
-    }, [navigate]);
+    }, []);
+
+
+    const handleNavigate = () => {
+        if (html) {
+            navigate('/presentation', { state: { html } });
+        }
+    };
 
     return (
         <div className="page-start-container">
+            <div className="page-title">
+                Загрузка презентации
+            </div>
             <div className="upload-box">
-                <h1>Upload Presentation</h1>
-                <label className="upload-button">
-                    {isLoading ? 'Загрузка...' : 'Выберите файл PPTX'}
-                    <input
-                        type="file"
-                        accept=".pptx"
-                        onChange={handleFileUpload}
-                        disabled={!isConnected('presentation') || isLoading}
-                        hidden
-                    />
+                <label
+                    className={`upload-area ${uploadedFileName ? 'disabled' : ''}`}
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={(e) => {
+                        e.preventDefault();
+                        if (uploadedFileName) return;
+                        const file = e.dataTransfer.files[0];
+                        if (file) handleFileUpload({ target: { files: [file] } });
+                    }}
+                >
+                    <img src="/icons/upload.svg" alt="upload" className="icon" />
+                    <div className="info" style={{ fontSize: '18px', marginTop: '4px', color: '#474747'}}>.pptx</div>
+                    <div className="info">Перетащите файл сюда или нажмите, чтобы загрузить</div>
+                    <div className="info" style={{ fontSize: '16px', marginTop: '8px' }}>
+                        Максимальный размер файла: <span style={{ color: '#474747'}}>100 MB</span>
+                    </div>
+                    <input type="file" accept=".pptx" onChange={handleFileUpload} disabled={uploadedFileName} />
                 </label>
 
-                {!isConnected('presentation') && (
-                    <div className="error-message">
-                        {isConnecting ? 'Подключение...' : 'Сервер недоступен'}
-                    </div>
-                )}
+                <div className="file-loading-container">
+                    {!isConnected('presentation') && (
+                        <div className="error-message">
+                            {isConnecting ? 'Подключение...' : 'Сервер недоступен'}
+                        </div>
+                    )}
+                    {isLoading ? (
+                        <div className="file-loading">
+                            <div className="file-name">{uploadedFileName || 'Загрузка файла...'}</div>
+                            <ClipLoader size={40} color="#868080" />
+                        </div>
+                    ) : error ? (
+                        <div className="error-message">{error}</div>
+                    ) : uploadedFileName ? (
+                        <div className="file-name">
+                            {uploadedFileName} получен!
+                        </div>
+                    ) : null}
+                </div>
 
-                {error && <div className="error-message">{error}</div>}
+                <CopyLink link={presentationLink || 'https://example.com/path'} />
+
+                <button
+                    className={`upload-submit ${isLoading || !uploadedFileName || !html ? 'disabled' : ''}`}
+                    disabled={isLoading || !uploadedFileName || !html}
+                    onClick={handleNavigate}
+                >
+                    Загрузить
+                </button>
             </div>
         </div>
     );

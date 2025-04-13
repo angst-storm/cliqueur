@@ -1,0 +1,11 @@
+.app-wrapper {
+    min-height: 100vh;
+}
+
+.light-bg {
+    background-color: #E8E8E8;
+}
+
+.dark-bg {
+    background-color: #000000;
+}
