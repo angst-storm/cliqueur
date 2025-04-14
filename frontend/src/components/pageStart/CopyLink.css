@@ -1,0 +1,28 @@
+.link-container {
+    width: 90%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.link-label {
+    width: 100%;
+    font-size: 18px;
+    color: rgba(134, 128, 128, 0.5);
+    margin-bottom: 4px;
+    align-self: flex-start;
+    margin-left: auto;
+}
+
+.link-input {
+    width: 100%;
+    padding: 10px 14px;
+    font-size: 24px;
+    border: 1px solid #ccc;
+    background-color: #fafafa;
+    outline: none;
+}
+
+.link-input:hover {
+    border-color: #999;
+}
