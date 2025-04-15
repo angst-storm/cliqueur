@@ -86,7 +86,7 @@ const PageStart = () => {
 
     const handleNavigate = () => {
         if (html) {
-            navigate('/presentation', { state: { html } });
+            navigate('/broadcast', { state: { html } });
         }
     };
 
