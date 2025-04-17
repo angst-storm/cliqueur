@@ -1,5 +1,6 @@
 services:
   backend:
+    container_name: backend
     image: cliqueur/backend
     build:
       context: backend
@@ -10,3 +11,11 @@ services:
       - "8000:8000"
     volumes:
       - ./backend/models:/app/models
+
+  frontend:
+    container_name: frontend
+    image: cliqueur/frontend
+    build:
+      context: frontend
+    ports:
+      - "3000:3000"
