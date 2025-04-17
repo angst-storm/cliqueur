@@ -6,3 +6,4 @@ python-dotenv>=1.1.0
 langchain-gigachat>=0.3.10
 aspose_slides>=25.4.0
 python-pptx>=1.0.2
+pillow>=11.2.1

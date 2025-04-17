@@ -25,3 +25,11 @@ cd frontend
 npm install
 npm start
 ```
+
+## Docker build
+
+```bash
+docker build . -t cliqueur:1 --platform linux/amd64
+
+docker compose up -d
+```

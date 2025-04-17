@@ -1,0 +1,12 @@
+services:
+  backend:
+    image: cliqueur/backend
+    build:
+      context: backend
+      platforms:
+        - "linux/amd64"
+    env_file: backend/.env
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend/models:/app/models
