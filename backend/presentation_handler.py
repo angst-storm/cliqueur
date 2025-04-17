@@ -59,6 +59,7 @@ async def process_presentation(websocket: WebSocket):
             logger.info("HTML успешно сохранен")
         await websocket.send_text(html)
         logger.info("HTML успешно отправлен")
+        await websocket.send_text('https://cliqueur.com/path_updated')
 
     except WebSocketDisconnect:
         logger.info("Клиент pres отключился")
@@ -78,7 +79,6 @@ def extract_text(file_name: str = "pres.pptx") -> dict[int, list[str]]:
         for shape in slide.shapes:
             if hasattr(shape, "text"):
                 text[idx].append(shape.text)
-    print(text)
     return text
 
 
@@ -88,6 +88,10 @@ async def send_slide_number(websocket: WebSocket):
     try:
         while True:
             slides_probs = await slides_queue.get()
+            if not slides_probs:
+                logger.info("Slides: skipping empty dict")
+                continue
+
             slide = max(slides_probs.items(), key=lambda x: x[1])
             logger.info(f'Top slide is {slide}')
             if slide[1] >= MIN_PROBABILITY:
