@@ -4,7 +4,8 @@ import os
 import re
 from tempfile import NamedTemporaryFile
 import pptx
-from s3 import s3_resource, BUCKET_NAME
+import io
+from s3 import s3_resource, s3_client, BUCKET_NAME
 import boto3
 import uuid
 import os
@@ -94,8 +95,12 @@ async def process_presentation(websocket: WebSocket):
         await websocket.close()
 
 
-def extract_text(file_name: str = "pres.pptx") -> dict[int, list[str]]:
-    pres = pptx.Presentation(file_name)
+def extract_text(pres_id: str) -> dict[int, list[str]]:
+    data = io.BytesIO()
+    s3_client.download_fileobj(
+        Bucket=BUCKET_NAME, Key=f"{pres_id}/file.pptx", Fileobj=data
+    )
+    pres = pptx.Presentation(data)
     text = {}
     for idx, slide in enumerate(pres.slides):
         text[idx] = []

@@ -10,6 +10,9 @@ RUN dpkg -i libssl1.1_1.1.0g-2ubuntu4_amd64.deb
 RUN apt-get update
 RUN apt-get install -y libgdiplus
 
+# ffmpeg
+RUN apt-get install -y ffmpeg
+
 # fonts
 RUN wget http://ftp.de.debian.org/debian/pool/contrib/m/msttcorefonts/ttf-mscorefonts-installer_3.8_all.deb
 RUN apt-get install -y ./ttf-mscorefonts-installer_3.8_all.deb
