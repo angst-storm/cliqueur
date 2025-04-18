@@ -5,10 +5,10 @@ services:
     build:
       context: backend
       platforms:
-        - "linux/amd64"
+        - linux/amd64
     env_file: backend/.env
     ports:
-      - "8000:8000"
+      - 8000:8000
     volumes:
       - ./backend/models:/app/models
 
@@ -18,4 +18,28 @@ services:
     build:
       context: frontend
     ports:
-      - "3000:3000"
+      - 3000:3000
+
+  postgres:
+    container_name: postgres
+    image: postgres:17
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_PASSWORD: password
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - ./.postgresql:/var/lib/postgresql/data
+
+  minio:
+    container_name: minio
+    image: quay.io/minio/minio:RELEASE.2025-04-08T15-41-24Z
+    ports:
+      - 9000:9000
+      - 9001:9001
+    environment:
+      MINIO_ROOT_USER: root
+      MINIO_ROOT_PASSWORD: password
+    volumes:
+      - ./.minio/data:/data
+    command: server --console-address ":9001" /data
