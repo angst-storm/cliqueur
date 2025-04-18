@@ -39,7 +39,7 @@ const PresentationPageId = () => {
 
     return (
         <div>
-            {slides.length > 0 && <PresentationView slides={slides} />}
+            {slides.length > 0 && <PresentationView id={id} slides={slides} />}
         </div>
     );
 };
