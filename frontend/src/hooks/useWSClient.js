@@ -17,7 +17,7 @@ export const useWSClient = () => {
                 clients.current[endpoint].close();
             }
 
-            const client = new WSClient(`ws://localhost:8000/ws/${endpoint}`);
+            const client = new WSClient(`${process.env.REACT_APP_BACKEND_URL || 'ws://localhost:8000'}/ws/${endpoint}`);
             await client.connect();
 
             clients.current[endpoint] = client;

@@ -5,10 +5,12 @@ services:
     build:
       context: backend
       platforms:
-        - "linux/amd64"
+        - linux/amd64
     env_file: backend/.env
+    environment:
+      S3_ENDPOINT_URL: http://minio:9000
     ports:
-      - "8000:8000"
+      - 8000:8000
     volumes:
       - ./backend/models:/app/models
 
@@ -17,5 +19,33 @@ services:
     image: cliqueur/frontend
     build:
       context: frontend
+    environment:
+      - REACT_APP_S3_ENDPOINT_URL=http://localhost:9000
+      - REACT_APP_S3_BUCKET_NAME=presentations
+      - REACT_APP_BACKEND_URL=ws://localhost:8000
     ports:
-      - "3000:3000"
+      - 3000:3000
+
+  # postgres:
+  #   container_name: postgres
+  #   image: postgres:17
+  #   ports:
+  #     - 5432:5432
+  #   environment:
+  #     POSTGRES_PASSWORD: password
+  #     PGDATA: /var/lib/postgresql/data/pgdata
+  #   volumes:
+  #     - ./.postgresql:/var/lib/postgresql/data
+
+  minio:
+    container_name: minio
+    image: bitnami/minio:2025.4.8
+    ports:
+      - 9000:9000
+      - 9001:9001
+    environment:
+      - MINIO_ROOT_USER=root
+      - MINIO_ROOT_PASSWORD=password
+      - MINIO_DEFAULT_BUCKETS=presentations
+    volumes:
+      - ./.minio/data:/bitnami/minio/data

@@ -135,7 +135,7 @@ const PageStart = () => {
                     ) : null}
                 </div>
 
-                <CopyLink link={presentationLink || 'https://example.com/path'} />
+                <CopyLink link={presentationLink || '...'} />
 
                 <button
                     className={`upload-submit ${isLoading || !uploadedFileName || !html ? 'disabled' : ''}`}

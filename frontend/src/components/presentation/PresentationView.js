@@ -5,7 +5,7 @@ import SlideControlWrapper from './SlideControlWrapper';
 import { useAudioRecorder } from '../../hooks/useAudioRecorder';
 import { useWSClient } from '../../hooks/useWSClient';
 
-const PresentationView = ({ slides }) => {
+const PresentationView = ({ id, slides }) => {
     const [currentSlide, setCurrentSlide] = useState(0);
     const { isRecording, startRecording, stopRecording } = useAudioRecorder();
     const { connect, disconnect } = useWSClient();
@@ -33,6 +33,7 @@ const PresentationView = ({ slides }) => {
         if (!isRecording) {
             try {
                 wsClient.current = await connect('asr');
+                wsClient.current.send(id);
                 await startRecording((data) => {
                     if (wsClient.current?.isConnected) {
                         wsClient.current.send(data);
