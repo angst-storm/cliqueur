@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-route
 import PageStart from './components/pageStart/PageStart';
 import PresentationPage from './components/presentationPage/PresentationPage';
 import './App.css';
-import BroadcastPage from "./components/broadcastPage/BroadcastPage";
+import PreviewPage from "./components/broadcastPage/PreviewPage";
 
 function AppWrapper() {
     const location = useLocation();
@@ -15,7 +15,7 @@ function AppWrapper() {
         >
             <Routes>
                 <Route path="/" element={<PageStart />} />
-                <Route path="/broadcast" element={<BroadcastPage />} />
+                <Route path="/peview" element={<PreviewPage />} />
                 <Route path="/presentation" element={<PresentationPage />} />
             </Routes>
         </div>

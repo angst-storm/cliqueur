@@ -4,7 +4,7 @@ export const useAudioRecorder = () => {
     const mediaRecorder = useRef(null);
     const streamRef = useRef(null);
     const [isRecording, setIsRecording] = useState(false);
-    const CHUNK_COUNT = 5000;
+    const CHUNK_COUNT = 1000;
 
 
     const initAudio = useCallback(async () => {

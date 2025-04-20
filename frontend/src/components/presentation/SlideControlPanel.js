@@ -1,5 +1,7 @@
 import React from 'react';
 import './SlideControlPanel.css';
+import { useLocation, useNavigate } from 'react-router-dom';
+
 
 const SlideControlPanel = ({
                                onPrev,
@@ -8,6 +10,10 @@ const SlideControlPanel = ({
                                isRecording,
                                currentSlide
                            }) => {
+    const location = useLocation();
+    const navigate = useNavigate();
+    const html = location.state?.html;
+
     return (
         <div className="slide-control-panel">
             <button className="control-btn" onClick={onPrev} title="Назад">
@@ -23,7 +29,10 @@ const SlideControlPanel = ({
                 <img src="/icons/next.svg" alt="Вперёд" />
             </button>
 
-            <button className="control-btn" onClick={() => document.documentElement.requestFullscreen()}>
+            <button className="control-btn" onClick={async () => {
+                await onToggleRecording();
+                navigate('/peview', {state: {html}});
+            } }>
                 <img src="/icons/fullscreen.svg" alt="Полный экран" />
             </button>
 
