@@ -86,7 +86,9 @@ const PageStart = () => {
 
     const handleNavigate = () => {
         if (html) {
-            navigate('/presentation', { state: { html } });
+            navigate('/peview', { state: {
+                html, title: uploadedFileName
+            } });
         }
     };
 

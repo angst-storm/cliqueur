@@ -4,6 +4,7 @@ import PageStart from './components/pageStart/PageStart';
 import PresentationPage from './components/presentationPage/PresentationPage';
 import PresentationPageId from './components/presentationPage/PresentationPageId';
 import './App.css';
+import PreviewPage from "./components/broadcastPage/PreviewPage";
 
 function AppWrapper() {
     const location = useLocation();
@@ -15,6 +16,7 @@ function AppWrapper() {
         >
             <Routes>
                 <Route path="/" element={<PageStart />} />
+                <Route path="/peview" element={<PreviewPage />} />
                 <Route path="/presentation" element={<PresentationPage />} />
                 <Route path="/presentation/:id" element={<PresentationPageId />} />
             </Routes>

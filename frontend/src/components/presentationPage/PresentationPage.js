@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import { useLocation } from 'react-router-dom';
 import PresentationView from '../../components/presentation/PresentationView';
 import RecordingStatusBar from '../statusBar/RecordingStatusBar';
@@ -6,6 +6,24 @@ import RecordingStatusBar from '../statusBar/RecordingStatusBar';
 const PresentationPage = () => {
     const location = useLocation();
     const [slides, setSlides] = useState([]);
+    const containerRef = useRef(null);
+
+    useEffect(() => {
+        const el = containerRef.current || document.documentElement;
+        if (el.requestFullscreen) {
+            el.requestFullscreen();
+        } else if (el.webkitRequestFullscreen) {
+            el.webkitRequestFullscreen();
+        } else if (el.msRequestFullscreen) {
+            el.msRequestFullscreen();
+        }
+
+        return () => {
+            if (document.fullscreenElement) {
+                document.exitFullscreen?.();
+            }
+        };
+    }, []);
 
     useEffect(() => {
         if (location.state?.html) {
