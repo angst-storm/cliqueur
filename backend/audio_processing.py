@@ -2,9 +2,9 @@ import asyncio
 import os
 import time
 import logging
+import presentation_handler
 
 from gigachat_handler import GigachatSender
-from presentation_handler import extract_text
 from fastapi import WebSocket
 from fastapi.responses import HTMLResponse
 from whisperlivekit import WhisperLiveKit
@@ -22,18 +22,30 @@ def front_page():
     return HTMLResponse(kit.web_interface())
 
 
-async def handle_websocket_results(websocket, results_generator, pres_id):
+async def handle_websocket_results(results_generator, pres_id):
     delay_sum = 0.0
     count = 0
-    giga_sender = GigachatSender(extract_text(pres_id))
+    giga_sender = GigachatSender()
     giga_sender.start_text_processing()
     async for response in results_generator:
-        text = response["buffer_transcription"]
         delay = response["remaining_time_transcription"]
         delay_sum += delay
         count += 1
         logger.info("Current model delay: %s Average: %s", delay, delay_sum / count)
+
+        text = response["buffer_transcription"]
+        await bypass_mode(text)
         await giga_sender.add_text(text)
+
+
+async def bypass_mode(text: str):
+    if "кликер вперед" in text.lower():
+        logger.info("NEXT SLIDE")
+        await presentation_handler.slides_queue.put({'+': 1})
+
+    if "кликер назад" in text.lower():
+        logger.info("PREV SLIDE")
+        await presentation_handler.slides_queue.put({'-': 1})
 
 
 async def audio_endpoint(websocket: WebSocket):
@@ -43,7 +55,7 @@ async def audio_endpoint(websocket: WebSocket):
     logger.info("Extracting text from %s", pres_id)
     results_generator = await audio_processor.create_tasks()
     websocket_task = asyncio.create_task(
-        handle_websocket_results(websocket, results_generator, pres_id)
+        handle_websocket_results(results_generator, pres_id)
     )
 
     try:

@@ -39,17 +39,10 @@ class GigachatSender:
 
     user_history = []
 
-    def __init__(self, pres_text):
+    def __init__(self):
         try:
             self.text_queue = asyncio.Queue()
-            self.pres_text = pres_text
-            message = [
-                SystemMessage(content=pres_processing_prompt),
-                HumanMessage(content=str(pres_text)),
-            ]
-            respond = self.giga_instance.invoke(message)
-            logger.info(respond.content)
-            self.pres_processed = respond.content
+            self.pres_text = open("pres_proc.txt").read()
         except Exception as e:
             logger.error("Giga presentation processing error: %s", e)
 
@@ -71,7 +64,7 @@ class GigachatSender:
                 continue
 
             prompt_format = slides_prompt.format(
-                pres_text=self.pres_processed, user_history=self.user_history
+                pres_text=self.pres_text, user_history=self.user_history
             )
             message = [
                 SystemMessage(content=prompt_format),
@@ -85,3 +78,19 @@ class GigachatSender:
                 await presentation_handler.slides_queue.put(slides_probs)
             except Exception:
                 logger.error("Wrong Gigachat output format")
+
+
+class GigachatPresProcessor:
+    giga_instance = GigaChat(
+        credentials=GIGACHAT_API_KEY, verify_ssl_certs=False, model="GigaChat-2"
+    )
+
+    def process_presentation(self, pres_text, pres_id: str = ''):
+        message = [
+            SystemMessage(content=pres_processing_prompt),
+            HumanMessage(content=str(pres_text)),
+        ]
+        respond = self.giga_instance.invoke(message)
+        logger.info(respond.content)
+        with open("pres_proc.txt", 'w') as f:
+            f.write(respond.content)

@@ -38,8 +38,10 @@ async def websocket_endpoint(websocket: WebSocket):
 
 @app.websocket("/ws/slides")
 async def websocket_endpoint(websocket: WebSocket):
-    await create_task(presentation_handler.send_slide_number(websocket))
+    await websocket.accept()
+    create_task(presentation_handler.send_slide_number(websocket))
+    await create_task(presentation_handler.get_front_status(websocket))
 
 
 if __name__ == "__main__":
-    uvicorn.run("server:app", host="0.0.0.0", port=8000, reload=True, log_level="info")
+    uvicorn.run("server:app", host="0.0.0.0", port=8000, log_level="info")
