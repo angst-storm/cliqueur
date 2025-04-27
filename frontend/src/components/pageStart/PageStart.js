@@ -86,7 +86,7 @@ const PageStart = () => {
 
     const handleNavigate = () => {
         if (html) {
-            navigate('/peview', { state: {
+            navigate('/preview', { state: {
                 html, title: uploadedFileName
             } });
         }

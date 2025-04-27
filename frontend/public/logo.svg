@@ -1,30 +1,9 @@
-<svg width="2008" height="2008" viewBox="0 0 2008 2008" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g filter="url(#filter0_d_209_2)">
-<rect x="4" width="2000" height="2000" rx="1000" fill="white"/>
-</g>
-<rect x="1448" y="780" width="136" height="428" rx="68" fill="#FBB252"/>
-<rect x="1224" y="780" width="136" height="428" rx="68" fill="#6CB6DD"/>
-<rect x="441" y="614" width="783" height="120" rx="60" fill="#6FBB71"/>
-<path d="M1294 1280.01C1447.5 1286.5 1447.5 1286 1447.5 1150.5C1447.5 1015 1447.5 912.996 1447.5 804.5C1447.5 696.005 1447.5 696.005 1294 696.005" stroke="black" stroke-width="32" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M433.004 1127C433.004 1127 431.504 864.504 431.504 735.504C431.504 606.504 431.504 606.504 543.504 606.504C655.504 606.504 1027.5 606.504 1125.5 606.504C1223.5 606.504 1223.5 606.504 1223.5 735.504C1223.5 864.504 1222.5 1123 1222.5 1221.5C1222.5 1320 1222.5 1320 1101.5 1320C980.504 1320 979.504 1320 979.504 1320" stroke="black" stroke-width="32" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M1286 1208C1359.5 1208 1359.5 1208 1359.5 1137C1359.5 1066 1359.5 901.496 1359.5 840.5C1359.5 779.504 1359.5 779.505 1286 779.505" stroke="black" stroke-width="32" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M1510 1208.5C1583.5 1208.5 1583.5 1208.5 1583.5 1137.5C1583.5 1066.49 1583.5 901.991 1583.5 840.995C1583.5 779.999 1583.5 780 1510 780" stroke="black" stroke-width="32" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M436.004 733.505H1231" stroke="black" stroke-width="32" stroke-linejoin="round"/>
-<circle cx="672.004" cy="942.005" r="89" fill="#38383A" stroke="black" stroke-width="32"/>
-<path d="M824.002 1143.01C722.503 1104.5 592.008 1099.51 511.504 1143.01C431.01 1186.49 431.004 1297.97 431.004 1298V1298C431.004 1337.77 463.241 1370 503.007 1370H784.272C811.921 1370 834.335 1347.59 834.335 1319.94C834.335 1293.54 854.854 1271.77 881.016 1268.25C905.207 1265 932.374 1259.92 945.502 1252.5C962.154 1243.1 995.279 1193.14 1017.79 1156.97C1030.94 1135.84 1023.77 1108.29 1002.36 1095.59C991.018 1088.87 977.429 1088.14 968.242 1097.6C943.453 1123.11 905.587 1173.95 824.002 1143.01Z" fill="#FA425A" stroke="black" stroke-width="32" stroke-linejoin="round"/>
-<circle cx="1095" cy="1002" r="50" fill="#FA425A" stroke="black" stroke-width="30"/>
-<circle cx="504" cy="675" r="16" fill="black"/>
-<circle cx="563" cy="675" r="16" fill="black"/>
-<defs>
-<filter id="filter0_d_209_2" x="0" y="0" width="2008" height="2008" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
-<feFlood flood-opacity="0" result="BackgroundImageFix"/>
-<feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
-<feOffset dy="4"/>
-<feGaussianBlur stdDeviation="2"/>
-<feComposite in2="hardAlpha" operator="out"/>
-<feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0"/>
-<feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_209_2"/>
-<feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_209_2" result="shape"/>
-</filter>
-</defs>
+<svg width="824" height="746" viewBox="0 0 824 746" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect x="33" y="16" width="773" height="697" rx="50" fill="white"/>
+<rect x="16" y="27" width="783" height="120" rx="16" fill="#0080FF"/>
+<path d="M10 157H805" stroke="black" stroke-width="32" stroke-linejoin="round"/>
+<path d="M17.5 536.501C17.5 536.501 16 274 16 145C16 16.0001 16 16 128 16C240 16 612 16 710 16C808 16.0001 808 16.0001 808 145C808 274 807 532.491 807 630.996C807 729.501 807 729.501 686 729.501C565 729.501 564 729.501 564 729.501" stroke="black" stroke-width="32" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M425.998 503C324.499 464.5 194.004 459.506 113.5 503C32.9961 546.495 33 657.995 33 657.995V730H436.331V633C436.331 633 520.845 627.547 547.498 612.5C574.15 597.453 642.998 478.5 642.998 478.5L586.498 445C561.329 453.41 527.496 541.501 425.998 503Z" fill="#FA425A" stroke="black" stroke-width="32" stroke-linejoin="round"/>
+<circle cx="274" cy="302" r="89" fill="#38383A" stroke="black" stroke-width="32"/>
+<circle cx="697" cy="362" r="50" fill="#FA425A" stroke="black" stroke-width="30"/>
 </svg>

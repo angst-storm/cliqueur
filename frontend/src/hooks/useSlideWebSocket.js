@@ -1,18 +1,27 @@
 import { useEffect, useRef } from 'react';
 import { useWSClient } from './useWSClient';
 
-export const useSlideWebSocket = (showSlide) => {
-    const { connect, disconnect, getClient } = useWSClient();
+export const useSlideWebSocket = (showSlide,nextSlide, prevSlide) => {
+    const { connect, disconnect } = useWSClient();
     const wsClientRef = useRef(null);
+
 
     useEffect(() => {
         const setupWebSocket = async () => {
             if (!wsClientRef.current) {
                 wsClientRef.current = await connect('slides');
                 wsClientRef.current.onMessage((message) => {
-                    const slideNumber = parseInt(message, 10);
-                    if (!isNaN(slideNumber)) {
-                        showSlide(slideNumber);
+                    const trimmedMessage = message.trim();
+
+                    if (trimmedMessage === '+') {
+                        nextSlide();
+                    } else if (trimmedMessage === '-') {
+                        prevSlide();
+                    } else {
+                        const slideNumber = parseInt(trimmedMessage, 10);
+                        if (!isNaN(slideNumber)) {
+                            showSlide(slideNumber);
+                        }
                     }
                 });
             }
@@ -26,5 +35,7 @@ export const useSlideWebSocket = (showSlide) => {
                 wsClientRef.current = null;
             }
         };
-    }, [connect, disconnect, showSlide]);
+    }, [connect, disconnect]);
+
+    return wsClientRef;
 };

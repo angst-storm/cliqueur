@@ -7,6 +7,8 @@ import { useWSClient } from '../../hooks/useWSClient';
 
 const PresentationView = ({ id, slides }) => {
     const [currentSlide, setCurrentSlide] = useState(0);
+    const [isContextMode, setIsContextMode] = useState(false);
+    const [isKeywordMode, setIsKeywordMode] = useState(false);
     const { isRecording, startRecording, stopRecording } = useAudioRecorder();
     const { connect, disconnect } = useWSClient();
     const wsClient = useRef(null);
@@ -28,6 +30,29 @@ const PresentationView = ({ id, slides }) => {
     const prevSlide = useCallback(() => {
         showSlide(currentSlide - 1);
     }, [currentSlide, showSlide]);
+
+    const handleContextMode = useCallback(() => {
+        setIsContextMode(prev => !prev);
+        console.log('Тоглим режим контекста ' + isContextMode);
+    }, [isContextMode]);
+
+    const handleKeywordMode = useCallback(() => {
+        setIsKeywordMode(prev => !prev);
+        console.log('Тоглим режим ключевых слов ' + isKeywordMode);
+    }, [isKeywordMode]);
+
+    const slideWsClientRef = useSlideWebSocket(showSlide, nextSlide, prevSlide);
+
+    const sendModeUpdate = useCallback(() => {
+        if (slideWsClientRef.current?.isConnected) {
+            const message = JSON.stringify({
+                isContextMode,
+                isKeywordMode,
+                currentSlide
+            });
+            slideWsClientRef.current.send(message);
+        }
+    }, [slideWsClientRef, isContextMode, isKeywordMode, currentSlide]);
 
     const handleRecordToggle = useCallback(async () => {
         if (!isRecording) {
@@ -64,7 +89,10 @@ const PresentationView = ({ id, slides }) => {
         };
     }, [prevSlide, nextSlide]);
 
-    useSlideWebSocket(showSlide);
+    useEffect(() => {
+        sendModeUpdate();
+    }, [isContextMode, isKeywordMode, currentSlide, sendModeUpdate]);
+
 
     return (
         <div className="slideshow-container">
@@ -80,6 +108,10 @@ const PresentationView = ({ id, slides }) => {
                 onToggleRecording={handleRecordToggle}
                 currentSlide={currentSlide}
                 totalSlides={slides.length}
+                onToggleContextMode={handleContextMode}
+                onToggleKeywordMode={handleKeywordMode}
+                isKeywordMode={isKeywordMode}
+                isContextMode={isContextMode}
             />
         </div>
     );
