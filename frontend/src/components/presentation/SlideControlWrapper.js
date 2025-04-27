@@ -7,7 +7,11 @@ const SlideControlWrapper = ({
                                  onNext,
                                  onToggleRecording,
                                  isRecording,
-                                 currentSlide
+                                 currentSlide,
+                                 isKeywordMode,
+                                 isContextMode,
+                                 onToggleKeywordMode,
+                                 onToggleContextMode
                              }) => {
     const [visible, setVisible] = useState(false);
     const timeoutRef = useRef(null);
@@ -21,7 +25,7 @@ const SlideControlWrapper = ({
     const hidePanel = () => {
         timeoutRef.current = setTimeout(() => {
             setVisible(false);
-        }, 2000); // скрытие через 2 секунды
+        }, 2000);
     };
 
     useEffect(() => {
@@ -48,6 +52,10 @@ const SlideControlWrapper = ({
                     onToggleRecording={onToggleRecording}
                     isRecording={isRecording}
                     currentSlide={currentSlide}
+                    onToggleKeywordMode={onToggleKeywordMode}
+                    onToggleContextMode={onToggleContextMode}
+                    isKeywordMode={isKeywordMode}
+                    isContextMode={isContextMode}
                 />
             )}
         </div>

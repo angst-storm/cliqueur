@@ -8,7 +8,11 @@ const SlideControlPanel = ({
                                onNext,
                                onToggleRecording,
                                isRecording,
-                               currentSlide
+                               currentSlide,
+                               isKeywordMode,
+                               isContextMode,
+                               onToggleKeywordMode,
+                               onToggleContextMode
                            }) => {
     const location = useLocation();
     const navigate = useNavigate();
@@ -30,8 +34,10 @@ const SlideControlPanel = ({
             </button>
 
             <button className="control-btn" onClick={async () => {
-                await onToggleRecording();
-                navigate('/peview', {state: {html}});
+                if (isRecording) {
+                    await onToggleRecording();
+                }
+                navigate('/preview', {state: {html}});
             } }>
                 <img src="/icons/fullscreen.svg" alt="Полный экран" />
             </button>
@@ -44,6 +50,28 @@ const SlideControlPanel = ({
                 <img
                     src={isRecording ? "/icons/mic-on.svg" : "/icons/mic.svg"}
                     alt="Микрофон"
+                />
+            </button>
+
+            <button
+                className={`control-btn keyword-btn ${isKeywordMode ? 'active' : ''}`}
+                onClick={onToggleKeywordMode}
+                title="Режим ключевых слов"
+            >
+                <img
+                    src={isKeywordMode ? "/icons/keyword.svg" : "/logo.svg"}
+                    alt="Ключевые слова"
+                />
+            </button>
+
+            <button
+                className={`control-btn context-btn ${isContextMode ? 'active' : ''}`}
+                onClick={onToggleContextMode}
+                title="Режим контекста"
+            >
+                <img
+                    src={isContextMode ? "/icons/context.svg" : "/logo.svg"}
+                    alt="Контекст"
                 />
             </button>
         </div>

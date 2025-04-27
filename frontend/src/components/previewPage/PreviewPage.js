@@ -72,10 +72,18 @@ const PreviewPage = () => {
     return (
         <div className="broadcast-page">
             <header className="header">
+                <img src="/logo-big.svg" alt="Logo" className="logo-big" />
                 <h1 className="title">{title}</h1>
-                <button className="start-button" onClick={handleNavigate}>
-                    Начать выступление
-                </button>
+
+                <div className="buttons-container">
+                    <button className="new-presentation-button" onClick={() => navigate('/')}>
+                        + Новая презентация
+                    </button>
+
+                    <button className="start-button" onClick={handleNavigate}>
+                        Начать выступление
+                    </button>
+                </div>
             </header>
 
             <div className="content">
