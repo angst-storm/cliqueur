@@ -45,21 +45,21 @@ const SlideControlPanel = ({
             <button
                 className={`control-btn mic-btn ${isRecording ? 'active' : ''}`}
                 onClick={onToggleRecording}
-                title={isRecording ? 'Остановить запись' : 'Начать запись'}
+                title="Переключение слайда голосовой командой «Кликер, дальше!»"
             >
                 <img
-                    src={isRecording ? "/icons/mic-on.svg" : "/icons/mic.svg"}
-                    alt="Микрофон"
+                    src={isRecording ? "/icons/mic-on.svg" : "/icons/mic-off.svg"}
+                    alt="Передача звука"
                 />
             </button>
 
             <button
                 className={`control-btn keyword-btn ${isKeywordMode ? 'active' : ''}`}
                 onClick={onToggleKeywordMode}
-                title="Режим ключевых слов"
+                title="Переключение при обнаружении заранее заданных ключевых слов"
             >
                 <img
-                    src={isKeywordMode ? "/icons/keyword.svg" : "/logo.svg"}
+                    src={isKeywordMode ? "/icons/keywords-on.svg" : "/icons/keywords-off.svg"}
                     alt="Ключевые слова"
                 />
             </button>
@@ -67,10 +67,10 @@ const SlideControlPanel = ({
             <button
                 className={`control-btn context-btn ${isContextMode ? 'active' : ''}`}
                 onClick={onToggleContextMode}
-                title="Режим контекста"
+                title="Автоматическое переключение по смыслу сказанного"
             >
                 <img
-                    src={isContextMode ? "/icons/context.svg" : "/logo.svg"}
+                    src={isContextMode ? "/icons/context-on.svg" : "/icons/context-off.svg"}
                     alt="Контекст"
                 />
             </button>
