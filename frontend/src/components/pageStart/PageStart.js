@@ -71,6 +71,7 @@ const PageStart = () => {
                 }
 
                 if (receivedHtml && receivedLink) {
+                    setIsLoading(false);
                     clientRef.current.socket.removeEventListener('message', onMessage);
                 }
             };
@@ -78,7 +79,6 @@ const PageStart = () => {
             clientRef.current.socket.addEventListener('message', onMessage);
         } catch (err) {
             setError(err.message || 'Ошибка загрузки');
-        } finally {
             setIsLoading(false);
         }
     }, []);
@@ -130,7 +130,7 @@ const PageStart = () => {
                         </div>
                     ) : error ? (
                         <div className="error-message">{error}</div>
-                    ) : uploadedFileName ? (
+                    ) : uploadedFileName && html? (
                         <div className="file-name">
                             {uploadedFileName} получен!
                         </div>
