@@ -3,6 +3,7 @@ import os
 import time
 import logging
 
+import presentation_handler
 from gigachat_handler import GigachatSender
 from presentation_handler import extract_text
 from fastapi import WebSocket
@@ -33,6 +34,10 @@ async def handle_websocket_results(websocket, results_generator, pres_id):
         delay_sum += delay
         count += 1
         logger.info("Current model delay: %s Average: %s", delay, delay_sum / count)
+
+        text = response["buffer_transcription"]
+
+        await keywords_mode(text)
         await giga_sender.add_text(text)
 
 
@@ -53,3 +58,13 @@ async def audio_endpoint(websocket: WebSocket):
     except Exception as e:
         logger.error("WebSocket error: %s", e)
         websocket_task.cancel()
+
+
+async def keywords_mode(text: str):
+    lowered_text = text.lower()
+    for slide_num, target_phrases in presentation_handler.bracketed_notes_map.items():
+        for phrase in target_phrases:
+            logger.info(f"[keywords_mode] Проверка: '{phrase.lower()}' в тексте")
+            if phrase.lower() in lowered_text:
+                await presentation_handler.slides_queue.put({slide_num: 1})
+                return
