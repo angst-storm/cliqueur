@@ -16,6 +16,7 @@ import aspose.slides as slides
 from aspose.slides.export import HtmlOptions, SaveFormat
 from fastapi import WebSocket
 from fastapi import WebSocketDisconnect
+from json import loads
 
 PRESENTATION_LINK_BASE = os.getenv("PRESENTATION_LINK_BASE")
 
@@ -24,6 +25,8 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 slides_queue = asyncio.Queue()
+pres_status = {'isContextMode': False, 'isKeywordMode': False, 'currentSlide': 0}
+bracketed_notes_map: dict[int, list[str]] = {}
 
 
 class PresentationConverter:
@@ -80,6 +83,9 @@ async def process_presentation(websocket: WebSocket):
         pres_id = uuid.uuid4()
 
         save_s3(pres_id, html, pptx_data)
+        slides_text = extract_text(pres_id)
+        giga_proc = gigachat_handler.GigachatPresProcessor()  # todo это надо в очредь какую-нибудь
+        giga_proc.process_presentation(slides_text, pres_id)
 
         await websocket.send_text(html)
         logger.info("HTML %s успешно отправлен", pres_id)
@@ -96,10 +102,6 @@ async def process_presentation(websocket: WebSocket):
 
     finally:
         await websocket.close()
-
-    slides_text = extract_text(pres_id)
-    giga_proc = gigachat_handler.GigachatPresProcessor()
-    giga_proc.process_presentation(slides_text)
 
 
 def extract_text(pres_id: str) -> dict[int, list[str]]:
@@ -141,11 +143,12 @@ async def send_slide_number(websocket: WebSocket):
 
 
 async def get_front_status(websocket: WebSocket):
+    global pres_status
     logger.info("Slides Receive WebSocket подключен")
     try:
         while True:
             status = await websocket.receive_text()
-            logger.info(status)
+            pres_status = loads(status)
     except WebSocketDisconnect:
         logger.info("Клиент slides receive отключился")
     except Exception as e:
@@ -160,9 +163,6 @@ def save_s3(pres_id: str, html: str, pptx_data: bytes):
     pptx_object.put(Body=pptx_data)
 
     logger.info("Презентация %s успешно сохранена в S3", pres_id)
-
-
-bracketed_notes_map: dict[int, list[str]] = {}
 
 
 def extract_bracketed_notes_from_bytes(pptx_data: bytes):

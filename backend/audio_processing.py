@@ -11,6 +11,8 @@ from whisperlivekit import WhisperLiveKit
 from whisperlivekit.audio_processor import AudioProcessor
 
 WHISPER_SIZE = os.getenv("WHISPER_SIZE", "large-v3-turbo")
+FORWARD_PHRASE = "кликер вперед"
+BACKWARD_PHRASE = "кликер назад"
 
 kit = WhisperLiveKit(model=WHISPER_SIZE, language="ru", model_cache_dir="models")
 
@@ -25,7 +27,7 @@ def front_page():
 async def handle_websocket_results(results_generator, pres_id):
     delay_sum = 0.0
     count = 0
-    giga_sender = GigachatSender()
+    giga_sender = GigachatSender(pres_id)
     giga_sender.start_text_processing()
     async for response in results_generator:
         delay = response["remaining_time_transcription"]
@@ -39,11 +41,11 @@ async def handle_websocket_results(results_generator, pres_id):
 
 
 async def bypass_mode(text: str):
-    if "кликер вперед" in text.lower():
+    if FORWARD_PHRASE in text.lower():
         logger.info("NEXT SLIDE")
         await presentation_handler.slides_queue.put({'+': 1})
 
-    if "кликер назад" in text.lower():
+    if BACKWARD_PHRASE in text.lower():
         logger.info("PREV SLIDE")
         await presentation_handler.slides_queue.put({'-': 1})
 
