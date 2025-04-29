@@ -4,6 +4,7 @@ import os
 import re
 from tempfile import NamedTemporaryFile
 import pptx
+from pptx import Presentation
 import io
 
 import gigachat_handler
@@ -79,6 +80,7 @@ async def process_presentation(websocket: WebSocket):
         logger.info("Получен файл %s байт", len(pptx_data))
 
         html = PresentationConverter.convert_to_html(pptx_data)
+        extract_bracketed_notes(pptx_data)
 
         pres_id = uuid.uuid4()
 
@@ -102,6 +104,28 @@ async def process_presentation(websocket: WebSocket):
 
     finally:
         await websocket.close()
+
+
+def extract_bracketed_notes(pptx_data: bytes) -> dict[int, list[str]]:
+    prs = Presentation(io.BytesIO(pptx_data))
+    bracketed_notes_map.clear()
+    pattern = re.compile(r'\[([^]]+)]')
+
+    for idx, slide in enumerate(prs.slides):
+        if not slide.has_notes_slide:
+            continue
+
+        notes = []
+        for shape in slide.notes_slide.shapes:
+            if not shape.has_text_frame:
+                continue
+            text = shape.text or ""
+            notes.extend(pattern.findall(text))
+
+        if notes:
+            bracketed_notes_map[idx] = notes
+
+    print(bracketed_notes_map)
 
 
 def extract_text(pres_id: str) -> dict[int, list[str]]:

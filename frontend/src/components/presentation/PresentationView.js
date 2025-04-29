@@ -14,22 +14,30 @@ const PresentationView = ({ id, slides }) => {
     const wsClient = useRef(null);
 
     const showSlide = useCallback((index) => {
-        if (index >= slides.length) {
-            setCurrentSlide(0);
-        } else if (index < 0) {
-            setCurrentSlide(slides.length - 1);
-        } else {
-            setCurrentSlide(index);
-        }
+        setCurrentSlide((prev) => {
+            if (index >= slides.length) {
+                return 0;
+            } else if (index < 0) {
+                return slides.length - 1;
+            } else {
+                return index;
+            }
+        });
     }, [slides.length]);
 
     const nextSlide = useCallback(() => {
-        showSlide(currentSlide + 1);
-    }, [currentSlide, showSlide]);
+        setCurrentSlide((prev) => {
+            const next = prev + 1;
+            return next >= slides.length ? 0 : next;
+        });
+    }, [slides.length]);
 
     const prevSlide = useCallback(() => {
-        showSlide(currentSlide - 1);
-    }, [currentSlide, showSlide]);
+        setCurrentSlide((prev) => {
+            const prevIndex = prev - 1;
+            return prevIndex < 0 ? slides.length - 1 : prevIndex;
+        });
+    }, [slides.length]);
 
     const handleContextMode = useCallback(() => {
         setIsContextMode(prev => !prev);

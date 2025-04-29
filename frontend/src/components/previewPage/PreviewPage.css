@@ -23,7 +23,8 @@ html, body {
     justify-content: space-between;
     align-items: center;
     flex-wrap: wrap;
-    padding: 10px 32px;
+    padding-left: 32px;
+    padding-right: 32px;
     background-color: rgba(247,247,247,1);
     border-bottom: 1px solid #ccc;
     min-height: 10vh;
@@ -134,14 +135,12 @@ html, body {
 }
 
 .logo-big {
-    width: 120px;
-    margin-bottom: 20px;
+    width: 110px;
 }
 
 .buttons-container {
     display: flex;
     gap: 20px;
-    margin-top: 20px;
 }
 
 .new-presentation-button {
