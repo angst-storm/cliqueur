@@ -6,6 +6,8 @@ from tempfile import NamedTemporaryFile
 import pptx
 from pptx import Presentation
 import io
+
+import gigachat_handler
 from s3 import s3_resource, s3_client, BUCKET_NAME
 import boto3
 import uuid
@@ -15,13 +17,16 @@ import aspose.slides as slides
 from aspose.slides.export import HtmlOptions, SaveFormat
 from fastapi import WebSocket
 from fastapi import WebSocketDisconnect
+from json import loads
 
 PRESENTATION_LINK_BASE = os.getenv("PRESENTATION_LINK_BASE")
 
 MIN_PROBABILITY = 0.4
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
 slides_queue = asyncio.Queue()
+pres_status = {'isContextMode': False, 'isKeywordMode': False, 'currentSlide': 0}
 bracketed_notes_map: dict[int, list[str]] = {}
 
 
@@ -80,6 +85,9 @@ async def process_presentation(websocket: WebSocket):
         pres_id = uuid.uuid4()
 
         save_s3(pres_id, html, pptx_data)
+        slides_text = extract_text(pres_id)
+        giga_proc = gigachat_handler.GigachatPresProcessor()  # todo это надо в очредь какую-нибудь
+        giga_proc.process_presentation(slides_text, pres_id)
 
         await websocket.send_text(html)
         logger.info("HTML %s успешно отправлен", pres_id)
@@ -132,12 +140,12 @@ def extract_text(pres_id: str) -> dict[int, list[str]]:
         for shape in slide.shapes:
             if hasattr(shape, "text"):
                 text[idx].append(shape.text)
+
     return text
 
 
 async def send_slide_number(websocket: WebSocket):
-    await websocket.accept()
-    logger.info("Slides WebSocket подключен")
+    logger.info("Slides Send WebSocket подключен")
     try:
         while True:
             slides_probs = await slides_queue.get()
@@ -151,11 +159,24 @@ async def send_slide_number(websocket: WebSocket):
                 logger.info(f"Confident enough. Sending number {slide[0]}")
                 await websocket.send_text(str(slide[0]))
     except WebSocketDisconnect:
-        logger.info("Клиент slides отключился")
+        logger.info("Клиент slides send отключился")
     except Exception as e:
         logger.error(f"Ошибка отправки слайда: {str(e)}")
     finally:
         await websocket.close()
+
+
+async def get_front_status(websocket: WebSocket):
+    global pres_status
+    logger.info("Slides Receive WebSocket подключен")
+    try:
+        while True:
+            status = await websocket.receive_text()
+            pres_status = loads(status)
+    except WebSocketDisconnect:
+        logger.info("Клиент slides receive отключился")
+    except Exception as e:
+        logger.error(f"Ошибка отправки слайда: {str(e)}")
 
 
 def save_s3(pres_id: str, html: str, pptx_data: bytes):
@@ -166,3 +187,29 @@ def save_s3(pres_id: str, html: str, pptx_data: bytes):
     pptx_object.put(Body=pptx_data)
 
     logger.info("Презентация %s успешно сохранена в S3", pres_id)
+
+
+def extract_bracketed_notes_from_bytes(pptx_data: bytes):
+    """
+    Извлекает из заметок каждого слайда презентации все фразы, заключённые в [ ].
+    Возвращает словарь: ключ — номер слайда (0-based), значение — список найденных фраз.
+    """
+    prs = pptx.Presentation(io.BytesIO(pptx_data))
+    bracketed_notes_map.clear()
+    pattern = re.compile(r'[([^]]+)]')
+
+    for idx, slide in enumerate(prs.slides):
+        if not slide.has_notes_slide:
+            continue
+
+        notes = []
+        for shape in slide.notes_slide.shapes:
+            if not shape.has_text_frame:
+                continue
+            text = shape.text or ""
+            notes.extend(pattern.findall(text))
+
+        if notes:
+            bracketed_notes_map[idx] = notes
+
+    print(bracketed_notes_map)

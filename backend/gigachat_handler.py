@@ -11,6 +11,7 @@ from langchain_gigachat.chat_models import GigaChat
 from ast import literal_eval
 
 GIGACHAT_API_KEY = os.getenv("GIGACHAT_API_KEY")
+GIGACHAT_BYPASS_WAIT = 10
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -33,23 +34,20 @@ pres_processing_prompt = (
 
 
 class GigachatSender:
+    _off_by_bypass = False
+    _bypass_timer = None
+
     giga_instance = GigaChat(
         credentials=GIGACHAT_API_KEY, verify_ssl_certs=False, model="GigaChat-2"
     )
 
     user_history = []
 
-    def __init__(self, pres_text):
+    def __init__(self, pres_id):
         try:
             self.text_queue = asyncio.Queue()
-            self.pres_text = pres_text
-            message = [
-                SystemMessage(content=pres_processing_prompt),
-                HumanMessage(content=str(pres_text)),
-            ]
-            respond = self.giga_instance.invoke(message)
-            logger.info(respond.content)
-            self.pres_processed = respond.content
+            self.pres_id = pres_id
+            self.pres_text = open("pres_proc.txt").read()  # todo load from s3
         except Exception as e:
             logger.error("Giga presentation processing error: %s", e)
 
@@ -71,7 +69,7 @@ class GigachatSender:
                 continue
 
             prompt_format = slides_prompt.format(
-                pres_text=self.pres_processed, user_history=self.user_history
+                pres_text=self.pres_text, user_history=self.user_history
             )
             message = [
                 SystemMessage(content=prompt_format),
@@ -80,8 +78,41 @@ class GigachatSender:
             respond = self.giga_instance.invoke(message)
             logger.info("Gigachat respond for '%s' is %s", user_text, respond.content)
             self.user_history.append(user_text)
+
+            if not presentation_handler.pres_status['isContextMode'] or self._off_by_bypass:
+                continue
+
             try:
                 slides_probs = literal_eval(respond.content)
                 await presentation_handler.slides_queue.put(slides_probs)
             except Exception:
                 logger.error("Wrong Gigachat output format")
+
+    def turn_off_for_bypass(self):
+        if self._off_by_bypass:
+            self._bypass_timer.cancel()
+        else:
+            self._off_by_bypass = True
+
+        self._bypass_timer = asyncio.create_task(self._wait_for_timer())
+
+    async def _wait_for_timer(self):
+        await asyncio.sleep(GIGACHAT_BYPASS_WAIT)
+
+        self._off_by_bypass = False
+
+
+class GigachatPresProcessor:
+    giga_instance = GigaChat(
+        credentials=GIGACHAT_API_KEY, verify_ssl_certs=False, model="GigaChat-2"
+    )
+
+    def process_presentation(self, pres_text, pres_id):
+        message = [
+            SystemMessage(content=pres_processing_prompt),
+            HumanMessage(content=str(pres_text)),
+        ]
+        respond = self.giga_instance.invoke(message)
+        logger.info(respond.content)
+        with open("pres_proc.txt", 'w') as f:  # todo save to s3
+            f.write(respond.content)
