@@ -1,10 +1,12 @@
-uvicorn>=0.34.1
-fastapi>=0.115.12
-starlette>=0.46.2
-whisperlivekit>=0.1.5
+uvicorn~=0.34.0
+fastapi~=0.115.11
+starlette~=0.46.1
+whisperlivekit~=0.1.2
 python-dotenv>=1.1.0
 langchain-gigachat>=0.3.10
 aspose_slides>=25.4.0
 python-pptx>=1.0.2
 pillow>=11.2.1
 boto3>=1.37.36
+Levenshtein~=0.27.1
+langchain-core~=0.3.50

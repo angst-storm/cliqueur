@@ -187,29 +187,3 @@ def save_s3(pres_id: str, html: str, pptx_data: bytes):
     pptx_object.put(Body=pptx_data)
 
     logger.info("Презентация %s успешно сохранена в S3", pres_id)
-
-
-def extract_bracketed_notes_from_bytes(pptx_data: bytes):
-    """
-    Извлекает из заметок каждого слайда презентации все фразы, заключённые в [ ].
-    Возвращает словарь: ключ — номер слайда (0-based), значение — список найденных фраз.
-    """
-    prs = pptx.Presentation(io.BytesIO(pptx_data))
-    bracketed_notes_map.clear()
-    pattern = re.compile(r'[([^]]+)]')
-
-    for idx, slide in enumerate(prs.slides):
-        if not slide.has_notes_slide:
-            continue
-
-        notes = []
-        for shape in slide.notes_slide.shapes:
-            if not shape.has_text_frame:
-                continue
-            text = shape.text or ""
-            notes.extend(pattern.findall(text))
-
-        if notes:
-            bracketed_notes_map[idx] = notes
-
-    print(bracketed_notes_map)
