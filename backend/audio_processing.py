@@ -11,11 +11,14 @@ from fastapi.responses import HTMLResponse
 from whisperlivekit import WhisperLiveKit
 from whisperlivekit.audio_processor import AudioProcessor
 
+from phrase_matcher import PhraseMatcher
+
 WHISPER_SIZE = os.getenv("WHISPER_SIZE", "large-v3-turbo")
 FORWARD_PHRASE = "кликер вперед"
 BACKWARD_PHRASE = "кликер назад"
 
 kit = WhisperLiveKit(model=WHISPER_SIZE, language="ru", model_cache_dir="models")
+matcher = PhraseMatcher(match_threshold=0.7, word_distance=2)  # можешь конфигурировать
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -43,11 +46,11 @@ async def handle_websocket_results(results_generator, pres_id):
 
 
 async def bypass_mode(text: str):
-    if FORWARD_PHRASE in text.lower():
+    if matcher.compare(text, FORWARD_PHRASE):
         logger.info("NEXT SLIDE")
         await presentation_handler.slides_queue.put({'+': 1})
 
-    if BACKWARD_PHRASE in text.lower():
+    if matcher.compare(text, BACKWARD_PHRASE):
         logger.info("PREV SLIDE")
         await presentation_handler.slides_queue.put({'-': 1})
 
@@ -72,10 +75,9 @@ async def audio_endpoint(websocket: WebSocket):
 
 
 async def keywords_mode(text: str):
-    lowered_text = text.lower()
     for slide_num, target_phrases in presentation_handler.bracketed_notes_map.items():
         for phrase in target_phrases:
-            logger.info(f"[keywords_mode] Проверка: '{phrase.lower()}' в тексте")
-            if phrase.lower() in lowered_text:
+            if matcher.compare(text, phrase):
                 await presentation_handler.slides_queue.put({slide_num: 1})
+                logger.info(f"[keywords_mode] Найдена фраза: '{phrase}' → слайд {slide_num}")
                 return

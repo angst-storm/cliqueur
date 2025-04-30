@@ -8,3 +8,5 @@ aspose_slides>=25.4.0
 python-pptx>=1.0.2
 pillow>=11.2.1
 boto3>=1.37.36
+Levenshtein~=0.27.1
+langchain-core~=0.3.50
