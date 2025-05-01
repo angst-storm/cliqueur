@@ -86,11 +86,8 @@ async def process_presentation(websocket: WebSocket):
 
         save_s3(pres_id, html, pptx_data)
         slides_text = extract_text(pres_id)
-        giga_proc = gigachat_handler.GigachatPresProcessor()  # todo это надо в очредь какую-нибудь
+        giga_proc = gigachat_handler.GigachatPresProcessor()  # todo это надо в очередь какую-нибудь
         giga_proc.process_presentation(slides_text, pres_id)
-
-        await websocket.send_text(html)
-        logger.info("HTML %s успешно отправлен", pres_id)
 
         link = f"{PRESENTATION_LINK_BASE}/{pres_id}"
         await websocket.send_text(link)
