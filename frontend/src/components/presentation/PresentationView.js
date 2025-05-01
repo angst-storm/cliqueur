@@ -101,6 +101,15 @@ const PresentationView = ({ id, slides }) => {
         sendModeUpdate();
     }, [isContextMode, isKeywordMode, currentSlide, sendModeUpdate]);
 
+    useEffect(() => {
+        handleRecordToggle();
+
+        return () => {
+            if (isRecording) {
+                handleRecordToggle();
+            }
+        };
+    }, []);
 
     return (
         <div className="slideshow-container">
