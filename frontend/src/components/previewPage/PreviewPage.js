@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useAudioRecorder } from '../../hooks/useAudioRecorder';
 import './PreviewPage.css';
 
 const PreviewPage = () => {
@@ -14,6 +15,9 @@ const PreviewPage = () => {
     const slideRef = useRef(null);
     const [scale, setScale] = useState(1);
     const title = location.state?.title || 'Без названия';
+
+    const { prepareMicrophoneAccess } = useAudioRecorder();
+
 
 
     useEffect(() => {
@@ -38,10 +42,16 @@ const PreviewPage = () => {
     }, [location.state]);
 
     const handleNavigate = async () => {
-        if (html) {
-            navigate('/presentation', {state: {html}});
+        try {
+            await prepareMicrophoneAccess();
+            if (html) {
+                navigate('/presentation', { state: { html } });
+            }
+        } catch (error) {
+            alert('Пожалуйста, разрешите доступ к микрофону для начала выступления');
         }
     };
+
 
     useEffect(() => {
         function updateScale() {

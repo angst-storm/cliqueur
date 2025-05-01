@@ -57,5 +57,5 @@ export const useAudioRecorder = () => {
         console.log('[Audio] Запись остановлена');
     }, []);
 
-    return { isRecording, startRecording, stopRecording };
+    return { isRecording, startRecording, stopRecording, prepareMicrophoneAccess: initAudio};
 };
