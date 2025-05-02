@@ -1,22 +1,19 @@
-import React, {useState, useEffect, useRef} from 'react';
-import { useLocation } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { useParams } from 'react-router-dom';
 import PresentationView from '../../components/presentation/PresentationView';
-import RecordingStatusBar from '../statusBar/RecordingStatusBar';
+import { fetchPresentationHtml, parseSlidesAsDomElements } from '../../services/s3Loader';
 
 const PresentationPage = () => {
-    const location = useLocation();
+    const { id } = useParams();
     const [slides, setSlides] = useState([]);
+    const [error, setError] = useState(null);
     const containerRef = useRef(null);
 
     useEffect(() => {
         const el = containerRef.current || document.documentElement;
-        if (el.requestFullscreen) {
-            el.requestFullscreen();
-        } else if (el.webkitRequestFullscreen) {
-            el.webkitRequestFullscreen();
-        } else if (el.msRequestFullscreen) {
-            el.msRequestFullscreen();
-        }
+        if (el.requestFullscreen) el.requestFullscreen();
+        else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+        else if (el.msRequestFullscreen) el.msRequestFullscreen();
 
         return () => {
             if (document.fullscreenElement) {
@@ -26,18 +23,29 @@ const PresentationPage = () => {
     }, []);
 
     useEffect(() => {
-        if (location.state?.html) {
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(location.state.html, 'text/html');
-            const slides = Array.from(doc.querySelectorAll('.slide'));
-            console.log('Слайды:', slides);
-            setSlides(slides);
+        const load = async () => {
+            try {
+                const html = await fetchPresentationHtml(id);
+                const domSlides = parseSlidesAsDomElements(html);
+                setSlides(domSlides);
+            } catch (err) {
+                setError(err.message);
+                console.error('Error loading presentation:', err);
+            }
+        };
+
+        if (id) {
+            load();
         }
-    }, [location.state]);
+    }, [id]);
+
+    if (error) {
+        return <div>Error: {error}</div>;
+    }
 
     return (
-        <div>
-            {slides.length > 0 && <PresentationView slides={slides} />}
+        <div ref={containerRef}>
+            {slides.length > 0 && <PresentationView id={id} slides={slides} />}
         </div>
     );
 };

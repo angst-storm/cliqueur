@@ -12,7 +12,6 @@ const PageStart = () => {
     const { connect, disconnect, isConnected, isConnecting, getClient } = useWSClient();
     const clientRef = useRef(null);
     const [uploadedFileName, setUploadedFileName] = useState('');
-    const [html, setHtml] = useState(null);
     const [presentationLink, setPresentationLink] = useState('');
 
     useEffect(() => {
@@ -43,7 +42,6 @@ const PageStart = () => {
         setIsLoading(true);
         setError('');
         setUploadedFileName(file.name);
-        setHtml(null);
         setPresentationLink('');
 
         try {
@@ -56,7 +54,6 @@ const PageStart = () => {
 
             await clientRef.current.send(fileBuffer);
 
-            let receivedHtml = null;
             let receivedLink = null;
 
             const onMessage = (event) => {
@@ -65,15 +62,10 @@ const PageStart = () => {
                 if (data.startsWith('http')) {
                     receivedLink = data;
                     setPresentationLink(data);
-                } else {
-                    receivedHtml = data;
-                    setHtml(data);
-                }
-
-                if (receivedHtml && receivedLink) {
                     setIsLoading(false);
                     clientRef.current.socket.removeEventListener('message', onMessage);
                 }
+
             };
 
             clientRef.current.socket.addEventListener('message', onMessage);
@@ -85,12 +77,23 @@ const PageStart = () => {
 
 
     const handleNavigate = () => {
-        if (html) {
-            navigate('/preview', { state: {
-                html, title: uploadedFileName
-            } });
+        const id = extractIdFromLink(presentationLink);
+        if (id) {
+            navigate(`/preview/${id}`);
+        } else {
+            alert('Не удалось извлечь ID презентации из ссылки');
         }
     };
+
+    const extractIdFromLink = (url) => {
+        try {
+            const match = url.match(/\/presentation\/([^/?#]+)/);
+            return match ? match[1] : null;
+        } catch {
+            return null;
+        }
+    };
+
 
     return (
         <div className="page-start-container">
@@ -130,7 +133,7 @@ const PageStart = () => {
                         </div>
                     ) : error ? (
                         <div className="error-message">{error}</div>
-                    ) : uploadedFileName && html? (
+                    ) : uploadedFileName && presentationLink? (
                         <div className="file-name">
                             {uploadedFileName} получен!
                         </div>
@@ -140,8 +143,8 @@ const PageStart = () => {
                 <CopyLink link={presentationLink || '...'} />
 
                 <button
-                    className={`upload-submit ${isLoading || !uploadedFileName || !html ? 'disabled' : ''}`}
-                    disabled={isLoading || !uploadedFileName || !html}
+                    className={`upload-submit ${isLoading || !uploadedFileName || !presentationLink ? 'disabled' : ''}`}
+                    disabled={isLoading || !uploadedFileName || !presentationLink}
                     onClick={handleNavigate}
                 >
                     Загрузить

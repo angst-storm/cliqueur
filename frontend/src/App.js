@@ -2,7 +2,6 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import PageStart from './components/pageStart/PageStart';
 import PresentationPage from './components/presentationPage/PresentationPage';
-import PresentationPageId from './components/presentationPage/PresentationPageId';
 import './App.css';
 import PreviewPage from "./components/previewPage/PreviewPage";
 
@@ -16,9 +15,8 @@ function AppWrapper() {
         >
             <Routes>
                 <Route path="/" element={<PageStart />} />
-                <Route path="/preview" element={<PreviewPage />} />
-                <Route path="/presentation" element={<PresentationPage />} />
-                <Route path="/presentation/:id" element={<PresentationPageId />} />
+                <Route path="/preview/:id" element={<PreviewPage />} />
+                <Route path="/presentation/:id" element={<PresentationPage />} />
             </Routes>
         </div>
     );

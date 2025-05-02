@@ -11,7 +11,8 @@ const SlideControlWrapper = ({
                                  isKeywordMode,
                                  isContextMode,
                                  onToggleKeywordMode,
-                                 onToggleContextMode
+                                 onToggleContextMode,
+                                 id
                              }) => {
     const [visible, setVisible] = useState(false);
     const timeoutRef = useRef(null);
@@ -56,6 +57,7 @@ const SlideControlWrapper = ({
                     onToggleContextMode={onToggleContextMode}
                     isKeywordMode={isKeywordMode}
                     isContextMode={isContextMode}
+                    id={id}
                 />
             )}
         </div>

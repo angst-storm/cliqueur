@@ -1,76 +1,66 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useAudioRecorder } from '../../hooks/useAudioRecorder';
+import { fetchPresentationHtml, parseSlidesFromHtml } from '../../services/s3Loader';
+
 import './PreviewPage.css';
 
 const PreviewPage = () => {
-    const location = useLocation();
+    const { id } = useParams();
     const navigate = useNavigate();
 
     const [slides, setSlides] = useState([]);
     const [currentSlide, setCurrentSlide] = useState(0);
-    const [html, setHtml] = useState(null);
+    const [scale, setScale] = useState(1);
 
     const slideViewRef = useRef(null);
     const slideRef = useRef(null);
-    const [scale, setScale] = useState(1);
-    const title = location.state?.title || 'Без названия';
 
     const { prepareMicrophoneAccess } = useAudioRecorder();
 
-
-
     useEffect(() => {
-        if (!location.state?.html) return;
-        setHtml(location.state.html);
+        const loadSlides = async () => {
+            try {
+                const html = await fetchPresentationHtml(id);
+                const parsed = parseSlidesFromHtml(html);
+                setSlides(parsed);
+            } catch (error) {
+                console.error('Ошибка загрузки презентации:', error);
+            }
+        };
 
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(location.state.html, 'text/html');
+        if (id) {
+            loadSlides();
+        }
+    }, [id]);
 
-        const data = Array.from(doc.querySelectorAll('.slide')).map(el => {
-            const style = el.getAttribute('style') || '';
-            const wMatch = style.match(/width\s*:\s*(\d+)px/);
-            const hMatch = style.match(/height\s*:\s*(\d+)px/);
-            return {
-                html: el.innerHTML,
-                width:  wMatch ? parseInt(wMatch[1], 10) : null,
-                height: hMatch ? parseInt(hMatch[1], 10) : null,
-            };
-        });
-
-        setSlides(data);
-    }, [location.state]);
 
     const handleNavigate = async () => {
         try {
             await prepareMicrophoneAccess();
-            if (html) {
-                navigate('/presentation', { state: { html } });
-            }
-        } catch (error) {
-            alert('Пожалуйста, разрешите доступ к микрофону для начала выступления');
+            navigate(`/presentation/${id}`);
+        } catch {
+            alert('Пожалуйста, разрешите доступ к микрофону для начала выступления.');
         }
     };
 
-
     useEffect(() => {
-        function updateScale() {
+        const updateScale = () => {
             if (!slideViewRef.current) return;
 
-            const { clientWidth: viewW, clientHeight: viewH } = slideViewRef.current;
-            const { width: slideW, height: slideH } = slides[currentSlide] || {};
+            const { clientWidth, clientHeight } = slideViewRef.current;
+            const { width, height } = slides[currentSlide] || {};
 
             let newScale = 1;
-            if (slideW && slideH) {
-                newScale = Math.min(viewW / slideW, viewH / slideH);
-                newScale = Math.min(1, newScale); // не даём больше 100%
+            if (width && height) {
+                newScale = Math.min(clientWidth / width, clientHeight / height);
+                newScale = Math.min(1, newScale);
             } else if (slideRef.current) {
-                const { scrollWidth, scrollHeight } = slideRef.current;
-                newScale = Math.min(viewW / scrollWidth, viewH / scrollHeight);
+                newScale = Math.min(clientWidth / slideRef.current.scrollWidth, clientHeight / slideRef.current.scrollHeight);
             }
 
             setScale(newScale);
-        }
+        };
 
         updateScale();
         window.addEventListener('resize', updateScale);
@@ -83,7 +73,7 @@ const PreviewPage = () => {
         <div className="broadcast-page">
             <header className="header">
                 <img src="/logo-big.svg" alt="Logo" className="logo-big" />
-                <h1 className="title">{title}</h1>
+                <h1 className="title">{id}</h1>
 
                 <div className="buttons-container">
                     <button className="new-presentation-button" onClick={() => navigate('/')}>
@@ -110,7 +100,6 @@ const PreviewPage = () => {
                                 dangerouslySetInnerHTML={{ __html: s.html }}
                             />
                         </div>
-
                     ))}
                 </aside>
 
@@ -118,7 +107,7 @@ const PreviewPage = () => {
                     <div
                         className="slide-wrapper"
                         style={{
-                            width:  slideData.width  ? `${slideData.width}px`  : undefined,
+                            width: slideData.width ? `${slideData.width}px` : undefined,
                             height: slideData.height ? `${slideData.height}px` : undefined,
                             transform: `scale(${scale})`,
                             transformOrigin: 'center center',

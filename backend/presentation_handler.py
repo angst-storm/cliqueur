@@ -89,9 +89,6 @@ async def process_presentation(websocket: WebSocket):
         giga_proc = gigachat_handler.GigachatPresHandler()  # todo это надо в очередь какую-нибудь
         giga_proc.process_presentation(slides_text, pres_id)
 
-        await websocket.send_text(html)
-        logger.info("HTML %s успешно отправлен", pres_id)
-
         link = f"{PRESENTATION_LINK_BASE}/{pres_id}"
         await websocket.send_text(link)
         logger.info("Отправлена ссылка %s", link)
