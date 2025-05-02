@@ -12,11 +12,10 @@ const SlideControlPanel = ({
                                isKeywordMode,
                                isContextMode,
                                onToggleKeywordMode,
-                               onToggleContextMode
+                               onToggleContextMode,
+                               id
                            }) => {
-    const location = useLocation();
     const navigate = useNavigate();
-    const html = location.state?.html;
 
     return (
         <div className="slide-control-panel">
@@ -37,7 +36,7 @@ const SlideControlPanel = ({
                 if (isRecording) {
                     await onToggleRecording();
                 }
-                navigate('/preview', {state: {html}});
+                navigate(`/preview/${id}`);
             } }>
                 <img src="/icons/fullscreen.svg" alt="Полный экран" />
             </button>

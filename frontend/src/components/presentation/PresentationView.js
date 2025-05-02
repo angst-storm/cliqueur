@@ -129,6 +129,7 @@ const PresentationView = ({ id, slides }) => {
                 onToggleKeywordMode={handleKeywordMode}
                 isKeywordMode={isKeywordMode}
                 isContextMode={isContextMode}
+                id={id}
             />
         </div>
     );
