@@ -86,7 +86,7 @@ async def process_presentation(websocket: WebSocket):
 
         save_s3(pres_id, html, pptx_data)
         slides_text = extract_text(pres_id)
-        giga_proc = gigachat_handler.GigachatPresProcessor()  # todo это надо в очередь какую-нибудь
+        giga_proc = gigachat_handler.GigachatPresHandler()  # todo это надо в очередь какую-нибудь
         giga_proc.process_presentation(slides_text, pres_id)
 
         link = f"{PRESENTATION_LINK_BASE}/{pres_id}"
@@ -103,7 +103,7 @@ async def process_presentation(websocket: WebSocket):
         await websocket.close()
 
 
-def extract_bracketed_notes(pptx_data: bytes) -> dict[int, list[str]]:
+def extract_bracketed_notes(pptx_data: bytes):
     prs = Presentation(io.BytesIO(pptx_data))
     bracketed_notes_map.clear()
     pattern = re.compile(r'\[([^]]+)]')
@@ -170,6 +170,7 @@ async def get_front_status(websocket: WebSocket):
         while True:
             status = await websocket.receive_text()
             pres_status = loads(status)
+            logger.info(pres_status)
     except WebSocketDisconnect:
         logger.info("Клиент slides receive отключился")
     except Exception as e:

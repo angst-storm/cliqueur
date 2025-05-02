@@ -1,8 +1,6 @@
 import asyncio
 import os
-import time
 import logging
-import presentation_handler
 
 import presentation_handler
 from gigachat_handler import GigachatSender
@@ -40,18 +38,21 @@ async def handle_websocket_results(results_generator, pres_id):
         logger.info("Current model delay: %s Average: %s", delay, delay_sum / count)
 
         text = response["buffer_transcription"]
-        await bypass_mode(text)
-        await keywords_mode(text)
+        await bypass_mode(text, giga_sender)
+        if presentation_handler.pres_status["isKeywordMode"]:
+            await keywords_mode(text, giga_sender)
         await giga_sender.add_text(text)
 
 
-async def bypass_mode(text: str):
+async def bypass_mode(text: str, giga: GigachatSender):
     if matcher.compare(text, FORWARD_PHRASE):
         logger.info("NEXT SLIDE")
+        giga.turn_off_for_bypass()
         await presentation_handler.slides_queue.put({'+': 1})
 
     if matcher.compare(text, BACKWARD_PHRASE):
         logger.info("PREV SLIDE")
+        giga.turn_off_for_bypass()
         await presentation_handler.slides_queue.put({'-': 1})
 
 
@@ -74,10 +75,11 @@ async def audio_endpoint(websocket: WebSocket):
         websocket_task.cancel()
 
 
-async def keywords_mode(text: str):
+async def keywords_mode(text: str, giga: GigachatSender):
     for slide_num, target_phrases in presentation_handler.bracketed_notes_map.items():
         for phrase in target_phrases:
             if matcher.compare(text, phrase):
+                giga.turn_off_for_bypass()
                 await presentation_handler.slides_queue.put({slide_num: 1})
                 logger.info(f"[keywords_mode] Найдена фраза: '{phrase}' → слайд {slide_num}")
                 return
