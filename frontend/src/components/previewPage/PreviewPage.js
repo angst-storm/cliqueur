@@ -21,7 +21,7 @@ const PreviewPage = () => {
 
     const buttonRef = useRef(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [selectedModes, setSelectedModes] = useState([]);
+    const [selectedModes, setSelectedModes] = useState(['mic']);
     const [modalPosition, setModalPosition] = useState(null);
     const MODAL_WIDTH = 1000;
 
@@ -58,7 +58,12 @@ const PreviewPage = () => {
     const handleNavigate = async () => {
         try {
             await prepareMicrophoneAccess();
-            navigate(`/presentation/${id}`);
+            navigate(`/presentation/${id}`, {
+                state: {
+                    selectedModes
+                }
+            });
+
         } catch {
             alert('Пожалуйста, разрешите доступ к микрофону для начала выступления.');
         }
