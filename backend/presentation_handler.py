@@ -1,6 +1,5 @@
 import asyncio
 import logging
-import os
 import re
 from tempfile import NamedTemporaryFile
 import pptx
@@ -8,6 +7,7 @@ from pptx import Presentation
 import io
 
 import gigachat_handler
+import gigachat_pic
 from s3 import s3_resource, s3_client, BUCKET_NAME
 import boto3
 import uuid
@@ -20,6 +20,7 @@ from fastapi import WebSocketDisconnect
 from json import loads
 
 PRESENTATION_LINK_BASE = os.getenv("PRESENTATION_LINK_BASE")
+PROCESS_IMAGES = os.getenv("PROCESS_IMAGES", "false") == "true"
 
 MIN_PROBABILITY = 0.4
 logging.basicConfig(level=logging.INFO)
@@ -31,16 +32,16 @@ bracketed_notes_map: dict[int, list[str]] = {}
 
 
 class PresentationConverter:
-    @staticmethod
-    def convert_to_html(file_data: bytes) -> str:
-        with NamedTemporaryFile(delete=False, suffix=".pptx") as temp_pptx:
-            temp_pptx.write(file_data)
-            temp_pptx_path = temp_pptx.name
+    def __init__(self, file_data: bytes):
+        temp_pptx = NamedTemporaryFile(delete=False, suffix=".pptx")
+        temp_pptx.write(file_data)
+        self.temp_pptx_path = temp_pptx.name
 
+    def convert_to_html(self) -> str:
         try:
-            with slides.Presentation(temp_pptx_path) as pres:
+            with slides.Presentation(self.temp_pptx_path) as pres:
                 options = HtmlOptions()
-                output_path = temp_pptx_path.replace(".pptx", ".html")
+                output_path = self.temp_pptx_path.replace(".pptx", ".html")
                 pres.save(output_path, SaveFormat.HTML, options)
 
             with open(output_path, "r", encoding="utf-8") as f:
@@ -62,13 +63,17 @@ class PresentationConverter:
             html_content = re.sub(
                 r'<div\s+class="slideTitle">.*?</div>', "", html_content
             )
-
+        except Exception as e:
+            logger.info(f"HTML convertation error: {e}")
         finally:
-            os.unlink(temp_pptx_path)
             if os.path.exists(output_path):
                 os.unlink(output_path)
 
         return html_content
+
+    def __del__(self):
+        os.unlink(self.temp_pptx_path)
+        logger.info("Pres converter deleted")
 
 
 async def process_presentation(websocket: WebSocket):
@@ -79,14 +84,24 @@ async def process_presentation(websocket: WebSocket):
         pptx_data = await websocket.receive_bytes()
         logger.info("Получен файл %s байт", len(pptx_data))
 
-        html = PresentationConverter.convert_to_html(pptx_data)
+        pres_converter = PresentationConverter(pptx_data)
+        html = pres_converter.convert_to_html()
         extract_bracketed_notes(pptx_data)
+        logger.info("Converted to HTML")
 
         pres_id = uuid.uuid4()
 
         save_s3(pres_id, html, pptx_data)
         slides_text = extract_text(pres_id)
-        giga_proc = gigachat_handler.GigachatPresHandler()  # todo это надо в очередь какую-нибудь
+        logger.info("Text extracted")
+
+        if PROCESS_IMAGES:
+            giga_pic = gigachat_pic.GigachatPicHandler()
+            processed_images = giga_pic.process_aspose(pres_converter.temp_pptx_path)
+            slides_text = combine_text_and_images(slides_text, processed_images)
+            logger.info("Images processed")
+
+        giga_proc = gigachat_handler.GigachatPresProcessor()  # todo это надо в очредь какую-нибудь
         giga_proc.process_presentation(slides_text, pres_id)
 
         link = f"{PRESENTATION_LINK_BASE}/{pres_id}"
@@ -101,6 +116,14 @@ async def process_presentation(websocket: WebSocket):
 
     finally:
         await websocket.close()
+
+
+def combine_text_and_images(text_dict: dict, images: dict[int, str]):
+    combined = text_dict.copy()
+    for i in images:
+        combined[i]["images"] = images[i]
+
+    return combined
 
 
 def extract_bracketed_notes(pptx_data: bytes):
@@ -125,7 +148,7 @@ def extract_bracketed_notes(pptx_data: bytes):
     print(bracketed_notes_map)
 
 
-def extract_text(pres_id: str) -> dict[int, list[str]]:
+def extract_text(pres_id: str) -> dict[int, dict]:
     data = io.BytesIO()
     s3_client.download_fileobj(
         Bucket=BUCKET_NAME, Key=f"{pres_id}/file.pptx", Fileobj=data
@@ -133,10 +156,10 @@ def extract_text(pres_id: str) -> dict[int, list[str]]:
     pres = pptx.Presentation(data)
     text = {}
     for idx, slide in enumerate(pres.slides):
-        text[idx] = []
+        text[idx] = {"text": [], "images": None}
         for shape in slide.shapes:
             if hasattr(shape, "text"):
-                text[idx].append(shape.text)
+                text[idx]["text"].append(shape.text)
 
     return text
 
