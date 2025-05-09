@@ -1,0 +1,73 @@
+.popover-container {
+    position: absolute;
+    z-index: 1000;
+    background-color: white;
+    border-radius: 12px;
+}
+
+.mode-modal {
+    padding: 0 15px 15px;
+    max-width: 1000px;
+    border-radius: 12px;
+    border: 2px solid rgba(195, 192, 192, 1);
+    background: rgba(247, 247, 247, 1) 100%;
+}
+
+.mode-title {
+    font-size: 32px;
+    font-weight: normal;
+    color: rgba(134, 128, 128, 1);
+    margin-bottom: 10px;
+    margin-top: 0;
+    padding-top: 15px;
+}
+
+.mode-container {
+    border: 1px solid rgba(195, 192, 192, 1);
+    padding: 24px;
+    background: white;
+}
+
+.mode-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.mode-row {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.mode-icon {
+    width: 60px;
+    height: 60px;
+    flex-shrink: 0;
+}
+
+.mode-checkbox {
+    width: 20px;
+    height: 20px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.mode-content {
+    flex: 1;
+}
+
+.mode-label {
+    font-weight: normal;
+    font-size: 20px;
+    margin-bottom: 4px;
+    color: rgba(134, 128, 128, 1);
+}
+
+.mode-description {
+    font-size: 16px;
+    color: rgba(134, 128, 128, 1);
+}

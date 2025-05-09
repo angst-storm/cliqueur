@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAudioRecorder } from '../../hooks/useAudioRecorder';
 import { fetchPresentationHtml, parseSlidesFromHtml } from '../../services/s3Loader';
+import ModeSelectorModal from './/ModeSelectorModal.js';
 
 import './PreviewPage.css';
 
@@ -17,6 +18,25 @@ const PreviewPage = () => {
     const slideRef = useRef(null);
 
     const { prepareMicrophoneAccess } = useAudioRecorder();
+
+    const buttonRef = useRef(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedModes, setSelectedModes] = useState(['mic']);
+    const [modalPosition, setModalPosition] = useState(null);
+    const MODAL_WIDTH = 1000;
+
+    const openModal = () => {
+        if (isModalOpen) {
+            setIsModalOpen(false);
+        } else if (buttonRef.current) {
+            const rect = buttonRef.current.getBoundingClientRect();
+            setModalPosition({
+                top: rect.bottom + window.scrollY + 8,
+                left: rect.right + window.scrollX - MODAL_WIDTH,
+            });
+            setIsModalOpen(true);
+        }
+    };
 
     useEffect(() => {
         const loadSlides = async () => {
@@ -38,7 +58,12 @@ const PreviewPage = () => {
     const handleNavigate = async () => {
         try {
             await prepareMicrophoneAccess();
-            navigate(`/presentation/${id}`);
+            navigate(`/presentation/${id}`, {
+                state: {
+                    selectedModes
+                }
+            });
+
         } catch {
             alert('Пожалуйста, разрешите доступ к микрофону для начала выступления.');
         }
@@ -70,20 +95,43 @@ const PreviewPage = () => {
     const slideData = slides[currentSlide] || {};
 
     return (
-        <div className="broadcast-page">
+        <>
+            {isModalOpen && (
+                <ModeSelectorModal
+                    selectedModes={selectedModes}
+                    onSelect={setSelectedModes}
+                    onClose={() => setIsModalOpen(false)}
+                    position={modalPosition}
+                />
+            )}
+            <div className="broadcast-page">
             <header className="header">
                 <img src="/logo-big.svg" alt="Logo" className="logo-big" />
                 <h1 className="title">{id}</h1>
 
                 <div className="buttons-container">
-                    <button className="new-presentation-button" onClick={() => navigate('/')}>
-                        + Новая презентация
+                    <button
+                        ref={buttonRef}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            openModal();
+                        }}
+                        className="new-presentation-button"
+                    >
+                        Режим переключения {isModalOpen ? '⏶' : '⏷'}
                     </button>
 
-                    <button className="start-button" onClick={handleNavigate}>
-                        Начать выступление
-                    </button>
+                    <div className="right-buttons">
+                        <button className="new-presentation-button" onClick={() => navigate('/')}>
+                            + Новая презентация
+                        </button>
+                        <button className="start-button" onClick={handleNavigate}>
+                            Начать выступление
+                        </button>
+                    </div>
                 </div>
+
+
             </header>
 
             <div className="content">
@@ -121,7 +169,8 @@ const PreviewPage = () => {
                     </div>
                 </main>
             </div>
-        </div>
+            </div>
+        </>
     );
 };
 

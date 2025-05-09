@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useWSClient } from './useWSClient';
 
-export const useSlideWebSocket = (showSlide,nextSlide, prevSlide) => {
+export const useSlideWebSocket = (showSlide, nextSlide, prevSlide, onConnected) => {
     const { connect, disconnect } = useWSClient();
     const wsClientRef = useRef(null);
 
@@ -10,6 +10,9 @@ export const useSlideWebSocket = (showSlide,nextSlide, prevSlide) => {
         const setupWebSocket = async () => {
             if (!wsClientRef.current) {
                 wsClientRef.current = await connect('slides');
+                if (onConnected) {
+                    onConnected();
+                }
                 wsClientRef.current.onMessage((message) => {
                     const trimmedMessage = message.trim();
 

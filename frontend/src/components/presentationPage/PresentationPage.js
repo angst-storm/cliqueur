@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useLocation  } from 'react-router-dom';
 import PresentationView from '../../components/presentation/PresentationView';
 import { fetchPresentationHtml, parseSlidesAsDomElements } from '../../services/s3Loader';
 
@@ -8,6 +8,9 @@ const PresentationPage = () => {
     const [slides, setSlides] = useState([]);
     const [error, setError] = useState(null);
     const containerRef = useRef(null);
+
+    const location = useLocation();
+    const { selectedModes = [], currentSlide = 0 } = location.state || {};
 
     useEffect(() => {
         const el = containerRef.current || document.documentElement;
@@ -45,7 +48,13 @@ const PresentationPage = () => {
 
     return (
         <div ref={containerRef}>
-            {slides.length > 0 && <PresentationView id={id} slides={slides} />}
+            {slides.length > 0 &&
+                <PresentationView
+                    id={id}
+                    slides={slides}
+                    selectedModes={selectedModes}
+                    initialSlide={currentSlide}
+                />}
         </div>
     );
 };
