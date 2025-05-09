@@ -5,10 +5,11 @@ import SlideControlWrapper from './SlideControlWrapper';
 import { useAudioRecorder } from '../../hooks/useAudioRecorder';
 import { useWSClient } from '../../hooks/useWSClient';
 
-const PresentationView = ({ id, slides }) => {
-    const [currentSlide, setCurrentSlide] = useState(0);
-    const [isContextMode, setIsContextMode] = useState(false);
-    const [isKeywordMode, setIsKeywordMode] = useState(false);
+const PresentationView = ({ id, slides, selectedModes = [], initialSlide = 0 }) => {
+    const [currentSlide, setCurrentSlide] = useState(initialSlide);
+    const [isContextMode, setIsContextMode] = useState(selectedModes.includes('context'));
+    const [isKeywordMode, setIsKeywordMode] = useState(selectedModes.includes('keywords'));
+    const micEnabled = selectedModes.includes('mic');
     const { isRecording, startRecording, stopRecording } = useAudioRecorder();
     const { connect, disconnect } = useWSClient();
     const wsClient = useRef(null);
@@ -49,7 +50,6 @@ const PresentationView = ({ id, slides }) => {
         console.log('Тоглим режим ключевых слов ' + isKeywordMode);
     }, [isKeywordMode]);
 
-    const slideWsClientRef = useSlideWebSocket(showSlide, nextSlide, prevSlide);
 
     const sendModeUpdate = useCallback(() => {
         if (slideWsClientRef.current?.isConnected) {
@@ -60,7 +60,14 @@ const PresentationView = ({ id, slides }) => {
             });
             slideWsClientRef.current.send(message);
         }
-    }, [slideWsClientRef, isContextMode, isKeywordMode, currentSlide]);
+    }, [isContextMode, isKeywordMode, currentSlide]);
+
+    const slideWsClientRef = useSlideWebSocket(
+        showSlide,
+        nextSlide,
+        prevSlide,
+        sendModeUpdate
+    );
 
     const handleRecordToggle = useCallback(async () => {
         if (!isRecording) {
@@ -102,13 +109,14 @@ const PresentationView = ({ id, slides }) => {
     }, [isContextMode, isKeywordMode, currentSlide, sendModeUpdate]);
 
     useEffect(() => {
-        handleRecordToggle();
-
-        return () => {
-            if (isRecording) {
-                handleRecordToggle();
-            }
-        };
+        if (micEnabled) {
+            handleRecordToggle();
+            return () => {
+                if (isRecording) {
+                    handleRecordToggle();
+                }
+            };
+        }
     }, []);
 
     return (
@@ -129,6 +137,7 @@ const PresentationView = ({ id, slides }) => {
                 onToggleKeywordMode={handleKeywordMode}
                 isKeywordMode={isKeywordMode}
                 isContextMode={isContextMode}
+                id={id}
             />
         </div>
     );

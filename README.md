@@ -34,3 +34,9 @@ docker build frontend -t cliqueur/frontend:tag
 
 docker compose up -d
 ```
+
+## Terraform apply
+
+```bash
+tofu -chdir=deploy/terraform apply -var-file=variables.tfvars
+```

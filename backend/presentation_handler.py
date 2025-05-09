@@ -104,9 +104,6 @@ async def process_presentation(websocket: WebSocket):
         giga_proc = gigachat_handler.GigachatPresProcessor()  # todo это надо в очредь какую-нибудь
         giga_proc.process_presentation(slides_text, pres_id)
 
-        await websocket.send_text(html)
-        logger.info("HTML %s успешно отправлен", pres_id)
-
         link = f"{PRESENTATION_LINK_BASE}/{pres_id}"
         await websocket.send_text(link)
         logger.info("Отправлена ссылка %s", link)
@@ -129,7 +126,7 @@ def combine_text_and_images(text_dict: dict, images: dict[int, str]):
     return combined
 
 
-def extract_bracketed_notes(pptx_data: bytes) -> dict[int, list[str]]:
+def extract_bracketed_notes(pptx_data: bytes):
     prs = Presentation(io.BytesIO(pptx_data))
     bracketed_notes_map.clear()
     pattern = re.compile(r'\[([^]]+)]')
@@ -196,6 +193,7 @@ async def get_front_status(websocket: WebSocket):
         while True:
             status = await websocket.receive_text()
             pres_status = loads(status)
+            logger.info(pres_status)
     except WebSocketDisconnect:
         logger.info("Клиент slides receive отключился")
     except Exception as e:

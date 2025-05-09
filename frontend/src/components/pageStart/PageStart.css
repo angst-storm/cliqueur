@@ -3,34 +3,44 @@ body, html {
 }
 
 .page-start-container {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border: 2px solid rgba(195, 192, 192, 1);
+
     display: flex;
     flex-direction: column;
-    width: 68vw;
-    height: 100vh;
-    margin: 0 auto;
+    max-width: 80vw;
+    width: 50vw;
+    max-height: 90vh;
     background-color: #f7f7f7;
+    border-radius: 12px;
+    overflow: hidden;
 }
 
 .page-title {
-    height: 15vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 32px;
+    height: auto;
+    padding: 24px 0;
+    font-size: 28px;
     font-weight: 100;
     color: #474747;
     background-color: #f7f7f7;
     text-align: center;
-    width: 100%;
     font-family: 'Inter', sans-serif;
 }
 
+.upload-wrapper {
+    border: 2px solid rgba(195, 192, 192, 1);
+    border-radius: 13px;
+    margin: 0 15px 15px 15px;
+}
+
 .upload-box {
-    height: 85vh;
     width: 100%;
     background-color: white;
     border-radius: 12px;
-    padding: 40px 30px;
+    padding: 20px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -42,7 +52,7 @@ body, html {
 .upload-area {
     border: 2px dashed #ccc;
     background-color: #fafafa;
-    padding: 40px 20px;
+    padding: 15px 20px;
     text-align: center;
     cursor: pointer;
     margin-bottom: 20px;
@@ -96,7 +106,7 @@ body, html {
 }
 
 .upload-submit {
-    margin-top: 40px;
+    margin-top: 25px;
     background-color: rgba(0, 128, 255, 1);
     color: white;
     padding: 10px 24px;
@@ -126,4 +136,14 @@ body, html {
     color: red;
     font-size: 18px;
     font-family: 'Inter', sans-serif;
+}
+
+.fixed-logo {
+    position: fixed;
+    bottom: 5px;
+    right: 5px;
+    width: 150px;
+    height: auto;
+    opacity: 0.6;
+    pointer-events: none;
 }

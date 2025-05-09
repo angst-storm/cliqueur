@@ -89,8 +89,10 @@ class GigachatSender:
 
     def turn_off_for_bypass(self):
         if self._off_by_bypass:
+            logger.info("Reignoring giga")
             self._bypass_timer.cancel()
         else:
+            logger.info(f"Ignoring giga for {GIGACHAT_BYPASS_WAIT} sec")
             self._off_by_bypass = True
 
         self._bypass_timer = asyncio.create_task(self._wait_for_timer())
@@ -99,9 +101,10 @@ class GigachatSender:
         await asyncio.sleep(GIGACHAT_BYPASS_WAIT)
 
         self._off_by_bypass = False
+        logger.info("Giga continue")
 
 
-class GigachatPresProcessor:
+class GigachatPresHandler:
     giga_instance = GigaChat(
         credentials=GIGACHAT_API_KEY, verify_ssl_certs=False, model="GigaChat-2"
     )

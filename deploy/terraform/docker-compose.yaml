@@ -1,0 +1,52 @@
+services:
+  backend:
+    container_name: backend
+    image: ${backend_cr}:${backend_tag}
+    environment:
+      S3_ENDPOINT_URL: http://minio:9000
+      WHISPER_SIZE: large-v3-turbo
+      GIGACHAT_API_KEY: ${gigachat_api_key}
+      AWS_ACCESS_KEY_ID: root
+      AWS_SECRET_ACCESS_KEY: ${minio_password}
+      BUCKET_NAME: presentations
+      PRESENTATION_LINK_BASE: http://${app_base_url}/preview
+      LABEL_STUDIO_HOST: $$LABEL_STUDIO_HOST
+    expose:
+      - "8000"
+    volumes:
+      - backend:/app/models
+
+  frontend:
+    container_name: frontend
+    image: ${frontend_cr}:${frontend_tag}
+    environment:
+      REACT_APP_S3_ENDPOINT_URL: https://${app_base_url}/minio
+      REACT_APP_S3_BUCKET_NAME: presentations
+      REACT_APP_BACKEND_URL: wss://${app_base_url}
+    expose:
+      - "3000"
+
+  minio:
+    container_name: minio
+    image: bitnami/minio:2025.4.8
+    expose:
+      - "9000"
+    ports:
+      - 9001:9001
+    environment:
+      - MINIO_ROOT_USER=root
+      - MINIO_ROOT_PASSWORD=${minio_password}
+      - MINIO_DEFAULT_BUCKETS=presentations
+    volumes:
+      - minio:/bitnami/minio/data
+
+  nginx:
+    container_name: nginx
+    image: ${nginx_cr}:v1.0.0
+    ports:
+      - 80:80
+      - 443:443
+
+volumes:
+  backend:
+  minio:
