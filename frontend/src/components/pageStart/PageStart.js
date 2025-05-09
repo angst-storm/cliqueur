@@ -96,61 +96,66 @@ const PageStart = () => {
 
 
     return (
-        <div className="page-start-container">
-            <div className="page-title">
-                Загрузка презентации
-            </div>
-            <div className="upload-box">
-                <label
-                    className={`upload-area ${uploadedFileName ? 'disabled' : ''}`}
-                    onDragOver={(e) => e.preventDefault()}
-                    onDrop={(e) => {
-                        e.preventDefault();
-                        if (uploadedFileName) return;
-                        const file = e.dataTransfer.files[0];
-                        if (file) handleFileUpload({ target: { files: [file] } });
-                    }}
-                >
-                    <img src="/icons/upload.svg" alt="upload" className="icon" />
-                    <div className="info" style={{ fontSize: '18px', marginTop: '4px', color: '#474747'}}>.pptx</div>
-                    <div className="info">Перетащите файл сюда или нажмите, чтобы загрузить</div>
-                    <div className="info" style={{ fontSize: '16px', marginTop: '8px' }}>
-                        Максимальный размер файла: <span style={{ color: '#474747'}}>100 MB</span>
-                    </div>
-                    <input type="file" accept=".pptx" onChange={handleFileUpload} disabled={uploadedFileName} />
-                </label>
-
-                <div className="file-loading-container">
-                    {!isConnected('presentation') && (
-                        <div className="error-message">
-                            {isConnecting ? 'Подключение...' : 'Сервер недоступен'}
-                        </div>
-                    )}
-                    {isLoading ? (
-                        <div className="file-loading">
-                            <div className="file-name">{uploadedFileName || 'Загрузка файла...'}</div>
-                            <ClipLoader size={40} color="#868080" />
-                        </div>
-                    ) : error ? (
-                        <div className="error-message">{error}</div>
-                    ) : uploadedFileName && presentationLink? (
-                        <div className="file-name">
-                            {uploadedFileName} получен!
-                        </div>
-                    ) : null}
+        <>
+            <div className="page-start-container">
+                <div className="page-title">
+                    Загрузка презентации
                 </div>
+                <div className="upload-wrapper">
+                    <div className="upload-box">
+                        <label
+                            className={`upload-area ${uploadedFileName ? 'disabled' : ''}`}
+                            onDragOver={(e) => e.preventDefault()}
+                            onDrop={(e) => {
+                                e.preventDefault();
+                                if (uploadedFileName) return;
+                                const file = e.dataTransfer.files[0];
+                                if (file) handleFileUpload({ target: { files: [file] } });
+                            }}
+                        >
+                            <img src="/icons/upload.svg" alt="upload" className="icon" />
+                            <div className="info" style={{ fontSize: '18px', marginTop: '4px', color: '#474747'}}>.pptx</div>
+                            <div className="info">Перетащите файл сюда или нажмите, чтобы загрузить</div>
+                            <div className="info" style={{ fontSize: '16px', marginTop: '8px' }}>
+                                Максимальный размер файла: <span style={{ color: '#474747'}}>100 MB</span>
+                            </div>
+                            <input type="file" accept=".pptx" onChange={handleFileUpload} disabled={uploadedFileName} />
+                        </label>
 
-                <CopyLink link={presentationLink || '...'} />
+                        <div className="file-loading-container">
+                            {!isConnected('presentation') && (
+                                <div className="error-message">
+                                    {isConnecting ? 'Подключение...' : 'Сервер недоступен'}
+                                </div>
+                            )}
+                            {isLoading ? (
+                                <div className="file-loading">
+                                    <div className="file-name">{uploadedFileName || 'Загрузка файла...'}</div>
+                                    <ClipLoader size={40} color="#868080" />
+                                </div>
+                            ) : error ? (
+                                <div className="error-message">{error}</div>
+                            ) : uploadedFileName && presentationLink? (
+                                <div className="file-name">
+                                    {uploadedFileName} получен!
+                                </div>
+                            ) : null}
+                        </div>
 
-                <button
-                    className={`upload-submit ${isLoading || !uploadedFileName || !presentationLink ? 'disabled' : ''}`}
-                    disabled={isLoading || !uploadedFileName || !presentationLink}
-                    onClick={handleNavigate}
-                >
-                    Загрузить
-                </button>
+                        <CopyLink link={presentationLink || '...'} />
+
+                        <button
+                            className={`upload-submit ${isLoading || !uploadedFileName || !presentationLink ? 'disabled' : ''}`}
+                            disabled={isLoading || !uploadedFileName || !presentationLink}
+                            onClick={handleNavigate}
+                        >
+                            Загрузить
+                        </button>
+                    </div>
+                </div>
             </div>
-        </div>
+            <img src="/logo-big.svg" alt="Logo" className="fixed-logo" />
+        </>
     );
 };
 
