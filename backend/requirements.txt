@@ -10,3 +10,4 @@ pillow>=11.2.1
 boto3>=1.37.36
 Levenshtein~=0.27.1
 langchain-core~=0.3.50
+gigachat~=0.1.39.post1
