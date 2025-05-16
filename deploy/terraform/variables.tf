@@ -29,7 +29,11 @@ variable "folder_id" {
   type = string
 }
 
-variable "app_image_tag" {
+variable "backend_image_tag" {
+  type = string
+}
+
+variable "frontend_image_tag" {
   type = string
 }
 

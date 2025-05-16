@@ -9,12 +9,17 @@ services:
       AWS_ACCESS_KEY_ID: root
       AWS_SECRET_ACCESS_KEY: ${minio_password}
       BUCKET_NAME: presentations
-      PRESENTATION_LINK_BASE: http://${app_base_url}/preview
+      PRESENTATION_LINK_BASE: https://${app_base_url}/preview
       LABEL_STUDIO_HOST: $$LABEL_STUDIO_HOST
     expose:
       - "8000"
     volumes:
       - backend:/app/models
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: ["gpu"]
 
   frontend:
     container_name: frontend
