@@ -44,7 +44,7 @@ const SlideControlPanel = ({
             <button
                 className={`control-btn mic-btn ${isRecording ? 'active' : ''}`}
                 onClick={onToggleRecording}
-                title="Переключение слайда голосовой командой «Кликер, дальше!»"
+                title="Переключение слайда голосовой командой «Кликер, вперёд!» или «Кликер, назад!»"
             >
                 <img
                     src={isRecording ? "/icons/mic-on.svg" : "/icons/mic-off.svg"}
