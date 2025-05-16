@@ -9,29 +9,28 @@ body, html {
 }
 
 .slideshow-container {
-    position: relative;
     width: 100vw;
     height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    overflow: hidden;
 }
 
 .slides {
     display: flex;
-    width: 100%;
+    flex-wrap: nowrap;
     height: 100%;
     transition: transform 0.5s ease-in-out;
 }
 
 .slide {
-    min-width: 100vw;
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 2em;
+    flex: 0 0 100vw;
+    height: 100%;
     box-sizing: border-box;
+}
+
+.slide > * {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain;
 }
 
 .prev, .next {
