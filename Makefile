@@ -14,7 +14,7 @@ machine-ssh:
 	ssh -i .ssh/yandex angstorm@$(MACHINE_IP)
 
 docker-cloud-build:
-	docker build . -f deploy/cuda.dockerfile -t $(CLOUD_CR)/backend:$(IMAGE_TAG) --platform linux/amd64
+	docker build backend -f deploy/cuda.dockerfile -t $(CLOUD_CR)/backend:$(IMAGE_TAG) --platform linux/amd64
 	docker build frontend -t $(CLOUD_CR)/frontend:$(IMAGE_TAG) --platform linux/amd64 
 
 docker-cloud-push:
