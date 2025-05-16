@@ -11,7 +11,7 @@ data "yandex_vpc_subnet" "default" {
 }
 
 data "yandex_compute_image" "container-optimized-image" {
-  family = "container-optimized-image"
+  family = "container-optimized-image-gpu"
 }
 
 resource "yandex_container_registry" "default" {
@@ -74,18 +74,18 @@ resource "yandex_compute_instance" "cliqueur" {
     preemptible = true
   }
 
-  platform_id = "standard-v3"
-  resources {
-    cores  = 4
-    memory = 16
-  }
-
-  # platform_id = "standard-v3-t4i"
+  # platform_id = "standard-v3"
   # resources {
-  #   gpus   = 1
   #   cores  = 4
   #   memory = 16
   # }
+
+  platform_id = "standard-v3-t4i"
+  resources {
+    gpus   = 1
+    cores  = 4
+    memory = 16
+  }
 
   boot_disk {
     initialize_params {
@@ -105,9 +105,9 @@ resource "yandex_compute_instance" "cliqueur" {
       gigachat_api_key = var.gigachat_api_key
       app_base_url     = "cliqueur.sergei-kiprin.ru"
       backend_cr       = "cr.yandex/${yandex_container_registry.default.id}/backend"
-      backend_tag      = var.app_image_tag
+      backend_tag      = var.backend_image_tag
       frontend_cr      = "cr.yandex/${yandex_container_registry.default.id}/frontend"
-      frontend_tag     = var.app_image_tag
+      frontend_tag     = var.frontend_image_tag
       nginx_cr         = "cr.yandex/${yandex_container_registry.default.id}/nginx"
       minio_password   = var.minio_password
     })

@@ -5,6 +5,7 @@ from langchain_core.messages import HumanMessage, SystemMessage
 
 import presentation_handler
 import os
+from s3 import s3_resource, s3_client, BUCKET_NAME
 
 from langchain_gigachat.chat_models import GigaChat
 
@@ -46,7 +47,7 @@ class GigachatSender:
         try:
             self.text_queue = asyncio.Queue()
             self.pres_id = pres_id
-            self.pres_text = open("pres_proc.txt").read()  # todo load from s3
+            self.pres_text = self.get_preprocess_text()
         except Exception as e:
             logger.error("Giga presentation processing error: %s", e)
 
@@ -97,6 +98,10 @@ class GigachatSender:
 
         self._bypass_timer = asyncio.create_task(self._wait_for_timer())
 
+    def get_preprocess_text(self):
+        result = s3_client.get_object(Bucket = BUCKET_NAME, Key=f"{self.pres_id}/preprocess.json")
+        return result['Body'].read().decode("utf-8")
+
     async def _wait_for_timer(self):
         await asyncio.sleep(GIGACHAT_BYPASS_WAIT)
 
@@ -116,5 +121,4 @@ class GigachatPresHandler:
         ]
         respond = self.giga_instance.invoke(message)
         logger.info(respond.content)
-        with open("pres_proc.txt", 'w') as f:  # todo save to s3
-            f.write(respond.content)
+        return respond.content

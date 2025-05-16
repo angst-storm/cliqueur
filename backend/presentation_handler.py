@@ -101,8 +101,10 @@ async def process_presentation(websocket: WebSocket):
             slides_text = combine_text_and_images(slides_text, processed_images)
             logger.info("Images processed")
 
-        giga_proc = gigachat_handler.GigachatPresProcessor()  # todo это надо в очредь какую-нибудь
-        giga_proc.process_presentation(slides_text, pres_id)
+        giga_proc = gigachat_handler.GigachatPresHandler()  # todo это надо в очредь какую-нибудь
+        preprocess_text = giga_proc.process_presentation(slides_text, pres_id)
+
+        save_s3_preprocess(pres_id, preprocess_text)
 
         link = f"{PRESENTATION_LINK_BASE}/{pres_id}"
         await websocket.send_text(link)
@@ -208,3 +210,9 @@ def save_s3(pres_id: str, html: str, pptx_data: bytes):
     pptx_object.put(Body=pptx_data)
 
     logger.info("Презентация %s успешно сохранена в S3", pres_id)
+
+def save_s3_preprocess(pres_id: str, preprocess_text: str):
+    preprocess_object = s3_resource.Object(BUCKET_NAME, f"{pres_id}/preprocess.json")
+    preprocess_object.put(Body=preprocess_text)
+
+    logger.info("Предобработка %s успешно сохранена в S3", pres_id)
