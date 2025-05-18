@@ -92,7 +92,7 @@ async def process_presentation(websocket: WebSocket):
         pres_id = uuid.uuid4()
 
         save_s3(pres_id, html, pptx_data)
-        slides_text = extract_text(pres_id)
+        slides_text = extract_text_from_s3(pres_id)
         logger.info("Text extracted")
 
         if PROCESS_IMAGES:
@@ -102,8 +102,7 @@ async def process_presentation(websocket: WebSocket):
             logger.info("Images processed")
 
         giga_proc = gigachat_handler.GigachatPresHandler()  # todo это надо в очредь какую-нибудь
-        preprocess_text = giga_proc.process_presentation(slides_text, pres_id)
-
+        preprocess_text = giga_proc.process_presentation(slides_text)
         save_s3_preprocess(pres_id, preprocess_text)
 
         link = f"{PRESENTATION_LINK_BASE}/{pres_id}"
@@ -150,11 +149,15 @@ def extract_bracketed_notes(pptx_data: bytes):
     print(bracketed_notes_map)
 
 
-def extract_text(pres_id: str) -> dict[int, dict]:
+def extract_text_from_s3(pres_id: str):
     data = io.BytesIO()
     s3_client.download_fileobj(
         Bucket=BUCKET_NAME, Key=f"{pres_id}/file.pptx", Fileobj=data
     )
+    return extract_text(data)
+
+
+def extract_text(data) -> dict[int, dict]:
     pres = pptx.Presentation(data)
     text = {}
     for idx, slide in enumerate(pres.slides):
