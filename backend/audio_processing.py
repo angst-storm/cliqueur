@@ -76,7 +76,9 @@ async def audio_endpoint(websocket: WebSocket):
 
 
 async def keywords_mode(text: str, giga: GigachatSender):
-    for slide_num, target_phrases in presentation_handler.bracketed_notes_map.items():
+    keywords = presentation_handler.load_s3_keywords(giga.pres_id)
+    logger.info(f"Ключевые слова: {keywords}")
+    for slide_num, target_phrases in keywords.items():
         for phrase in target_phrases:
             if matcher.compare(text, phrase):
                 giga.turn_off_for_bypass()
