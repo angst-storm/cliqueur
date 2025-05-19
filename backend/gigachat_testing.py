@@ -1,28 +1,36 @@
 import csv
+import logging
+import statistics
 from pathlib import Path
 
 import gigachat_handler
 import asyncio
 from presentation_handler import extract_text, slides_queue, MIN_PROBABILITY, pres_status
 
-GIGA_SLIDES_FIELD_NAME = "Слайды Gigachat"
-GIGA_PROBS_FIELD_NAME = "Вероятности Gigachat"
+logging.getLogger("httpx").setLevel(logging.WARNING)
+logging.getLogger("gigachat_handler").setLevel(logging.WARNING)
+
+GIGA_SLIDES_FIELD = "Слайды Gigachat"
+MAE_FIELD = "MAE"
+GIGA_PROBS_FIELD = "Вероятности Gigachat"
 
 
 async def process_markup_csv():
-    giga = gigachat_handler.GigachatSender("")
+    giga = gigachat_handler.GigachatSender(None)
     giga.start_text_processing()
     pres_status["isContextMode"] = True
     with (open("test_pres/markup.csv", encoding='utf-8', newline='') as csv_in,
           open("test_pres/result.csv", mode='w', newline='', encoding='utf-8') as csv_out):
         reader = csv.DictReader(csv_in)
-        writer = csv.DictWriter(csv_out, reader.fieldnames + [GIGA_SLIDES_FIELD_NAME, GIGA_PROBS_FIELD_NAME])
+        writer = csv.DictWriter(csv_out, reader.fieldnames + [GIGA_SLIDES_FIELD, MAE_FIELD, GIGA_PROBS_FIELD])
         writer.writeheader()
+
+        block_count = err_sum = 0
         current_pres_id = 0
         switch_1_slide = switch_2_slide = switch_3_slide = 0
+
         for row in reader:
             pres_id = row["ID Презентации"]
-            block_id = row["ID Блока"]
             text = row["Текст"]
             switch_1 = row["Граница блока1"]
             switch_2 = row["Граница блока2"]
@@ -35,6 +43,8 @@ async def process_markup_csv():
                 giga.pres_text = get_new_pres_text(pres_id)
                 giga.reset_history()
                 current_pres_id = pres_id
+
+                block_count = err_sum = 0
                 switch_1_slide = switch_2_slide = switch_3_slide = 0
 
             if giga.pres_text is None:
@@ -42,11 +52,25 @@ async def process_markup_csv():
 
             await giga.add_text(text)
             slide_number, probs = await process_giga_respond()
-            row["Граница блока1"] = switch_1_slide
-            row["Граница блока2"] = switch_2_slide
-            row["Граница блока3"] = switch_3_slide
-            row[GIGA_SLIDES_FIELD_NAME] = slide_number
-            row[GIGA_PROBS_FIELD_NAME] = probs
+
+            if slide_number is not None:
+                block_count += 1
+                err_sum += abs(slide_number - (switch_1_slide + switch_2_slide + switch_3_slide) / 3.0)
+
+                sign = lambda x, y: "+" if x > y else "-"
+                diff = lambda switch: f"{sign(switch, slide_number)}{abs(switch - slide_number)}"
+
+                row["Граница блока1"] = f"{switch_1_slide} ({diff(switch_1_slide)})"
+                row["Граница блока2"] = f"{switch_2_slide} ({diff(switch_2_slide)})"
+                row["Граница блока3"] = f"{switch_3_slide} ({diff(switch_3_slide)})"
+                row[GIGA_SLIDES_FIELD] = slide_number
+                row[MAE_FIELD] = "{:.2f}".format(err_sum / block_count)
+                row[GIGA_PROBS_FIELD] = probs
+            else:
+                row["Граница блока1"] = switch_1_slide
+                row["Граница блока2"] = switch_2_slide
+                row["Граница блока3"] = switch_3_slide
+
             writer.writerow(row)
 
 
@@ -76,12 +100,10 @@ async def process_giga_respond():
     slides_probs = await slides_queue.get()
     if not slides_probs:
         print("Slides: skipping empty dict")
-        return None
+        return None, None
 
     slide = max(slides_probs.items(), key=lambda x: x[1])
-    print(f"Top slide is {slide}")
     if slide[1] >= MIN_PROBABILITY:
-        print(f"Giga slide pick: {slide[0]}")
         return slide[0], slides_probs
     else:
         return None, slides_probs

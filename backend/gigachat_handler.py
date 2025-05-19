@@ -87,6 +87,7 @@ class GigachatSender:
                 await presentation_handler.slides_queue.put(slides_probs)
             except Exception:
                 logger.error("Wrong Gigachat output format")
+                await presentation_handler.slides_queue.put(None)
 
     def turn_off_for_bypass(self):
         if self._off_by_bypass:
@@ -99,6 +100,8 @@ class GigachatSender:
         self._bypass_timer = asyncio.create_task(self._wait_for_timer())
 
     def get_preprocess_text(self):
+        if self.pres_id is None:
+            return
         result = s3_client.get_object(Bucket=BUCKET_NAME, Key=f"{self.pres_id}/preprocess.json")
         return result['Body'].read().decode("utf-8")
 
