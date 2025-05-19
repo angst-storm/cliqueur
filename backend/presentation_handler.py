@@ -1,4 +1,5 @@
 import asyncio
+import json
 import logging
 import re
 from tempfile import NamedTemporaryFile
@@ -28,7 +29,6 @@ logger = logging.getLogger(__name__)
 
 slides_queue = asyncio.Queue()
 pres_status = {'isContextMode': False, 'isKeywordMode': False, 'currentSlide': 0}
-bracketed_notes_map: dict[int, list[str]] = {}
 
 
 class PresentationConverter:
@@ -86,12 +86,13 @@ async def process_presentation(websocket: WebSocket):
 
         pres_converter = PresentationConverter(pptx_data)
         html = pres_converter.convert_to_html()
-        extract_bracketed_notes(pptx_data)
+        notes_map = extract_bracketed_notes(pptx_data)
         logger.info("Converted to HTML")
 
         pres_id = uuid.uuid4()
 
         save_s3(pres_id, html, pptx_data)
+        save_s3_keywords(pres_id, notes_map)
         slides_text = extract_text(pres_id)
         logger.info("Text extracted")
 
@@ -128,16 +129,16 @@ def combine_text_and_images(text_dict: dict, images: dict[int, str]):
     return combined
 
 
-def extract_bracketed_notes(pptx_data: bytes):
+def extract_bracketed_notes(pptx_data: bytes) -> dict[int, list[str]]:
     prs = Presentation(io.BytesIO(pptx_data))
-    bracketed_notes_map.clear()
     pattern = re.compile(r'\[([^]]+)]')
+    notes_map: dict[int, list[str]] = {}
 
     for idx, slide in enumerate(prs.slides):
         if not slide.has_notes_slide:
             continue
 
-        notes = []
+        notes: list[str] = []
         for shape in slide.notes_slide.shapes:
             if not shape.has_text_frame:
                 continue
@@ -145,9 +146,9 @@ def extract_bracketed_notes(pptx_data: bytes):
             notes.extend(pattern.findall(text))
 
         if notes:
-            bracketed_notes_map[idx] = notes
+            notes_map[idx] = notes
 
-    print(bracketed_notes_map)
+    return notes_map
 
 
 def extract_text(pres_id: str) -> dict[int, dict]:
@@ -211,8 +212,23 @@ def save_s3(pres_id: str, html: str, pptx_data: bytes):
 
     logger.info("Презентация %s успешно сохранена в S3", pres_id)
 
+
 def save_s3_preprocess(pres_id: str, preprocess_text: str):
     preprocess_object = s3_resource.Object(BUCKET_NAME, f"{pres_id}/preprocess.json")
     preprocess_object.put(Body=preprocess_text)
 
     logger.info("Предобработка %s успешно сохранена в S3", pres_id)
+
+
+def save_s3_keywords(pres_id: str, keywords_map: dict[int, list[str]]):
+    body = json.dumps(keywords_map, ensure_ascii=False)
+    keywords_object = s3_resource.Object(BUCKET_NAME, f"{pres_id}/keywords.json")
+    keywords_object.put(Body=body)
+
+    logger.info("Ключевые слова %s успешно сохранены в S3", pres_id)
+
+
+def load_s3_keywords(pres_id: str) -> dict[int, list[str]]:
+    obj = s3_client.get_object(Bucket=BUCKET_NAME, Key=f"{pres_id}/keywords.json")
+    raw = json.loads(obj["Body"].read().decode("utf-8"))
+    return {int(k): v for k, v in raw.items()}
