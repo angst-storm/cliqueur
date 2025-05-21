@@ -11,7 +11,8 @@ data "yandex_vpc_subnet" "default" {
 }
 
 data "yandex_compute_image" "container-optimized-image" {
-  family = "container-optimized-image-gpu"
+  # family = "container-optimized-image-gpu"
+  image_id = "fd8hag4tk836cpcetlbj"
 }
 
 resource "yandex_container_registry" "default" {
@@ -102,14 +103,16 @@ resource "yandex_compute_instance" "cliqueur" {
 
   metadata = {
     docker-compose = templatefile("docker-compose.yaml", {
-      gigachat_api_key = var.gigachat_api_key
-      app_base_url     = "cliqueur.sergei-kiprin.ru"
-      backend_cr       = "cr.yandex/${yandex_container_registry.default.id}/backend"
-      backend_tag      = var.backend_image_tag
-      frontend_cr      = "cr.yandex/${yandex_container_registry.default.id}/frontend"
-      frontend_tag     = var.frontend_image_tag
-      nginx_cr         = "cr.yandex/${yandex_container_registry.default.id}/nginx"
-      minio_password   = var.minio_password
+      gigachat_api_key        = var.gigachat_api_key
+      images_gigachat_api_key = var.images_gigachat_api_key
+      process_images          = var.process_images
+      app_base_url            = "cliqueur.sergei-kiprin.ru"
+      backend_cr              = "cr.yandex/${yandex_container_registry.default.id}/backend"
+      backend_tag             = var.backend_image_tag
+      frontend_cr             = "cr.yandex/${yandex_container_registry.default.id}/frontend"
+      frontend_tag            = var.frontend_image_tag
+      nginx_cr                = "cr.yandex/${yandex_container_registry.default.id}/nginx"
+      minio_password          = var.minio_password
     })
     ssh-keys = "angstorm:${var.ssh_pub}"
   }

@@ -12,6 +12,15 @@ variable "gigachat_api_key" {
   sensitive = true
 }
 
+variable "images_gigachat_api_key" {
+  type = string
+  sensitive = true
+}
+
+variable "process_images" {
+  type = string
+}
+
 variable "minio_password" {
   type = string
   sensitive = true

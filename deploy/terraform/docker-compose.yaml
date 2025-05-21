@@ -6,11 +6,13 @@ services:
       S3_ENDPOINT_URL: http://minio:9000
       WHISPER_SIZE: large-v3-turbo
       GIGACHAT_API_KEY: ${gigachat_api_key}
+      GIGACHAT_API_KEY_FOR_IMAGES: ${images_gigachat_api_key}
       AWS_ACCESS_KEY_ID: root
       AWS_SECRET_ACCESS_KEY: ${minio_password}
       BUCKET_NAME: presentations
       PRESENTATION_LINK_BASE: https://${app_base_url}/preview
       LABEL_STUDIO_HOST: $$LABEL_STUDIO_HOST
+      PROCESS_IMAGES: "${process_images}"
     expose:
       - "8000"
     volumes:
